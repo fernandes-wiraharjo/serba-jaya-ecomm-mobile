@@ -1,0 +1,21 @@
+# Cakupan aplikasi pelanggan
+
+Sumber: dokumen lokal *Ruang Lingkup Pekerjaan*, v1.0, 2 Oktober 2026, khususnya §2 dan §5. [Traceability](TRACEABILITY.md) menghubungkan aturan berikut ke modul. Phase 1 menyelesaikan fondasi teknis sesuai master prompt.
+
+- **Beranda (§2.1):** navigasi Beranda, Keranjang, Chat, Pesanan, dan Profil, plus akses alamat/pengiriman, notifikasi, keranjang, dan pencarian. Banner promosi, rekomendasi dari pembelian terbaru (maks. 8), dan unggulan berdasarkan volume penjualan (maks. 10). Ada kategori/tipe produk dan daftar diskon horizontal berurutan alfabetis, dengan banner khusus dan lazy loading.
+- **Akses dan registrasi (§2.2, §5):** tamu dapat menelusuri produk. Login Google/Apple dibutuhkan untuk fitur akun, termasuk Keranjang, Pesanan, Notifikasi, Profil dan aksi produk terlindungi. Lengkapi nama lengkap, telepon, dan email jika provider tidak memberikannya. Foto, tanggal lahir, jenis kelamin, dan kode referral opsional. Registrasi dapat dibatalkan.
+- **Alamat (§2.3):** CRUD alamat tersimpan, label, nama dan telepon penerima, koordinat/alamat lengkap, pemilihan/pencarian lokasi lewat peta, patokan/catatan, dan penanda alamat utama.
+- **Katalog (§2.4–2.5):** cari nama, filter kategori lalu tipe, urutkan terbaru (default), harga termurah atau termahal, dan pagination/lazy loading. Kartu berisi gambar, nama, harga, diskon bila berlaku, jumlah, dan catatan item. Detail mencakup deskripsi, harga member/non-member, harga bertingkat jika ada, kategori dan tipe, serta maksimal lima produk terkait dari tipe yang sama, secara alfabetis. Tambah ke keranjang dan Beli Sekarang membutuhkan login.
+- **Keranjang (§2.6):** pilih semua atau beberapa item, hapus item terpilih, tampilkan nama, gambar, harga, jumlah, catatan per item, voucher, dan total.
+- **Checkout (§2.7):** ringkas item terpilih dan catatan pesanan. Ambil sendiri atau pengiriman driver Serba Jaya. Untuk pengiriman pilih alamat tersimpan dan prioritas/segera atau jadwal 08.00–21.00 hari ini, besok, atau lusa. Ringkasan memuat subtotal, ongkir, biaya layanan, diskon produk/voucher, poin yang ditukar, dan total. Pesanan mendapat nomor dan ringkasan.
+- **Pembayaran dan pesanan (§2.7–2.8):** pelanggan mengunggah bukti bayar dan admin memverifikasi secara manual. Setelah pembayaran arahkan ke pesanan. Daftar berisi filter status, jumlah pesanan, lazy loading, dan refresh. Kartu memuat nomor, status, foto, item, jumlah, total dan akses detail. Detail menyediakan ringkasan, bantuan via WhatsApp, dan konfirmasi penerimaan. Cakupan pembatalan bertentangan antarbagian.
+- **Notifikasi dan Chat (§2.9):** push terkait promosi dan perubahan status pesanan, pusat notifikasi dengan navigasi ke tujuan, dan Chat mengarah ke WhatsApp. Daftar menangani kondisi kosong.
+- **Profil dan membership (§2.10):** profil menampilkan nama, nomor telepon, foto, email serta mengizinkan perubahan foto, nama, dan jenis kelamin. Akses pengaturan alamat, saldo reward point, voucher, hapus akun, dan logout. Pengajuan membership dengan KTP/dokumen identitas berlaku setelah verifikasi admin.
+- **Referral (§2.11):** admin membuat pengguna Marketing dan sistem menerbitkan kode referral untuk registrasi. Pembelian selesai oleh member yang memakai kode dapat memberi komisi 1% dari nilai penjualan, menunggu konfirmasi bisnis. Marketing melihat komisi, pelanggan/transaksi dan waktunya, serta dapat mengajukan penarikan.
+- **Reward (§2.12):** member mendapat 1 poin per nilai pembelian Rp20.000 yang memenuhi ketentuan. Non-member tidak mendapat poin. Penukaran 1 poin = Rp100 dan diperhitungkan saat checkout. Refund/pembatalan ditulis di luar cakupan.
+
+## Batas sistem
+
+- Portal admin, backend, dan integrasi langsung GF tidak dikembangkan di proyek mobile. GF dan ecommerce bertukar master produk/harga/stok dan informasi pengurangan stok melalui sistem backend sesuai spesifikasi yang harus dikonfirmasi.
+- Payment gateway, chat internal real-time, dan agregator kurir tidak termasuk. Backend berwenang atas stok, harga, diskon, membership, total pesanan, reward, komisi, dan verifikasi pembayaran.
+- Penyedia peta, WhatsApp, materi komersial, desain, dan aturan operasional bergantung pada konfirmasi bisnis. Rujuk [pertanyaan terbuka](OPEN_QUESTIONS.md).

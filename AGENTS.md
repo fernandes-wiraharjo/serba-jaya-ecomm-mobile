@@ -1,0 +1,10 @@
+# Instruksi agen untuk Serba Jaya Mobile
+
+- Baca [status proyek](docs/PROJECT_STATUS.md), [arsitektur](docs/architecture/ARCHITECTURE.md), dan [pemetaan kebutuhan](docs/requirements/TRACEABILITY.md) sebelum mengubah kode. Gunakan [indeks](docs/DOCUMENTATION_INDEX.md) untuk dokumen terkait. Jika tersedia melalui kanal berizin, gunakan master prompt Phase 1 dan PDF asli sebagai referensi lokal. Indeks menjelaskan rujukan yang tersedia di repositori.
+- Pertahankan Android dan iOS, modul feature-first Clean Architecture, MVVM pragmatis, Riverpod, GoRouter, dan Dio. Periksa implementasi sebelum menambah kode dan gunakan kembali komponen yang sesuai. Ikuti [standar penulisan](docs/development/CODING_STANDARDS.md). Buat fungsi dan file yang kohesif.
+- Buat perubahan kecil dan mudah ditinjau. Hindari abstraksi prematur dan refactor di luar lingkup. Minta persetujuan sebelum tindakan destruktif atau perubahan arsitektur besar.
+- Gunakan nama kode dalam bahasa Inggris dan dokumentasi dalam Bahasa Indonesia. Simpan teks pengguna di ARB. Jangan mengarang aturan bisnis, kontrak API, nilai desain final, atau kredensial. Catat ketidakpastian di [pertanyaan terbuka](docs/requirements/OPEN_QUESTIONS.md).
+- Lindungi dokumen pribadi, token, dan materi penandatanganan. Jangan simpan atau tampilkan rahasia di kode, log, tes, atau dokumentasi.
+- Inspeksi Figma melalui MCP boleh dilakukan hanya jika diizinkan secara eksplisit dan dalam cakupan baca saja. Modifikasi Figma dan implementasi UI final masing-masing memerlukan persetujuan terpisah. Gunakan referensi terverifikasi dan baca [panduan Figma](docs/integrations/FIGMA.md).
+- Google Sign-In direncanakan menggunakan GCP OAuth 2.0 / OpenID Connect. Pertahankan dukungan Sign in with Apple. Pisahkan token identitas provider dari sesi backend. Tunda integrasi provider sampai disetujui. Firebase Authentication memerlukan persetujuan eksplisit.
+- Tambah atau sesuaikan tes untuk perubahan perilaku. Jalankan format, analisis, serta tes yang relevan. Perbarui dokumentasi yang terdampak dan status proyek setelah perubahan signifikan. Laporkan hasil verifikasi aktual beserta blokir.

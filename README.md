@@ -1,4 +1,6 @@
-# Serba Jaya Ecommerce
+# Serba Jaya Ecommerce (`serba-jaya-ecomm-mobile`)
+
+Mobile apps for Serba Jaya Ecommerce.
 
 Fondasi Flutter untuk aplikasi pelanggan Android dan iOS. Proyek memiliki flavor dev, staging, dan prod, konfigurasi API/sesi, UI autentikasi, serta dokumentasi setup. Lihat [status proyek](docs/PROJECT_STATUS.md) dan [indeks dokumentasi](docs/DOCUMENTATION_INDEX.md).
 

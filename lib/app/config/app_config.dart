@@ -1,7 +1,16 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum AppEnvironment { dev, staging, prod }
+enum AppEnvironment {
+  dev('Serba Jaya DEV'),
+  staging('Serba Jaya STG'),
+  prod('Serba Jaya');
+
+  const AppEnvironment(this.displayName);
+
+  final String displayName;
+}
 
 @immutable
 class AppConfig {
@@ -13,7 +22,8 @@ class AppConfig {
   });
 
   factory AppConfig.fromDefines() => AppConfig.parse(
-    environment: const String.fromEnvironment('APP_ENV', defaultValue: 'dev'),
+    environment: const String.fromEnvironment('APP_ENV'),
+    nativeFlavor: appFlavor ?? '',
     displayName: const String.fromEnvironment('APP_DISPLAY_NAME'),
     apiBaseUrl: const String.fromEnvironment('API_BASE_URL'),
     debugLogging: const String.fromEnvironment(
@@ -24,12 +34,20 @@ class AppConfig {
 
   factory AppConfig.parse({
     required String environment,
+    String? nativeFlavor,
     String displayName = '',
     String apiBaseUrl = '',
     String debugLogging = 'false',
   }) {
     final env = AppEnvironment.values.asNameMap()[environment];
     if (env == null) throw const FormatException('APP_ENV');
+    if (nativeFlavor != null && nativeFlavor != env.name) {
+      throw const FormatException('APP_ENV must match the native flavor');
+    }
+    final label = displayName.trim();
+    if (label.isNotEmpty && label != env.displayName) {
+      throw const FormatException('APP_DISPLAY_NAME must match APP_ENV');
+    }
     if (debugLogging != 'true' && debugLogging != 'false') {
       throw const FormatException('ENABLE_DEBUG_LOGGING');
     }
@@ -48,7 +66,7 @@ class AppConfig {
 
     return AppConfig._(
       environment: env,
-      displayName: displayName.trim(),
+      displayName: env.displayName,
       apiBaseUrl: uri?.replace(
         path: uri.path.endsWith('/') ? uri.path : '${uri.path}/',
       ),

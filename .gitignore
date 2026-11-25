@@ -31,6 +31,14 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+**/build/
+**/.gradle/
+**/.kotlin/
+**/.dart_tool/
+**/.pub-cache/
+**/Pods/
+**/DerivedData/
+**/xcuserdata/
 /coverage/
 
 # Symbolication related
@@ -50,8 +58,10 @@ app.*.map.json
 /lib/l10n/generated/
 .env
 .env.*
+**/local.properties
 *.jks
 *.keystore
+*.pfx
 *.p12
 *.mobileprovision
 *.p8
@@ -60,6 +70,14 @@ app.*.map.json
 /doc-projek/
 client_secret*.json
 service-account*.json
+**/*client_secret*.json
+**/*service-account*.json
+**/*credentials*.json
+**/google-services.json
+**/GoogleService-Info.plist
+**/.mcp.json
+**/mcp.local.json
+**/.figma-console-mcp/
 !/.vscode/
 
 # Referensi sumber lokal, didistribusikan melalui kanal yang disetujui.

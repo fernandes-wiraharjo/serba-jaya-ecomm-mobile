@@ -7,6 +7,13 @@
   "orders": "Pesanan",
   "profile": "Profil",
   "notifications": "Notifikasi",
+  "navigationBadgeSemantics": "{item}, jumlah {count}",
+  "@navigationBadgeSemantics": {
+    "placeholders": {
+      "item": { "type": "String" },
+      "count": { "type": "String" }
+    }
+  },
   "login": "Masuk",
   "logout": "Keluar",
   "sessionLoading": "Memeriksa sesi…",
@@ -28,5 +35,60 @@
   "apiDisabled": "Layanan belum dikonfigurasi.",
   "unknownError": "Terjadi kesalahan.",
   "startupError": "Aplikasi gagal dimulai. Periksa konfigurasi lingkungan.",
-  "logoutError": "Penyimpanan sesi tidak dapat dibersihkan. Coba keluar lagi."
+  "logoutError": "Penyimpanan sesi tidak dapat dibersihkan. Coba keluar lagi.",
+  "authBrand": "Serba Jaya Mart",
+  "authWelcome": "Selamat datang kembali",
+  "authDescription": "Masuk untuk melanjutkan belanja dan menemukan kebutuhanmu.",
+  "authRequiredTitle": "Kamu Harus Masuk",
+  "authClose": "Tutup",
+  "authBack": "Kembali",
+  "authApple": "Masuk Dengan Apple",
+  "authGoogle": "Masuk Dengan Google",
+  "authPreparing": "Sedang memproses…",
+  "authProviderUnavailable": "Masuk dengan penyedia ini belum tersedia.",
+  "authProviderFailed": "Tidak dapat memulai proses masuk. Coba lagi.",
+  "authNoAccount": "Belum memiliki akun? ",
+  "authRegister": "Daftar",
+  "authVersion": "Version.{version}",
+  "@authVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "authRegistrationTitle": "Daftar Akun",
+  "authRequiredLegend": "*) Wajib diisi, data lainnya opsional",
+  "authPhoto": "Foto profil (opsional)",
+  "authNoPhoto": "Belum ada foto yang dipilih",
+  "authPickPhoto": "Pilih foto",
+  "authPhotoFailed": "Foto tidak dapat dibuka. Coba lagi.",
+  "authName": "Nama lengkap *",
+  "authNameHint": "Nama lengkap",
+  "authNameRequired": "Isi nama lengkap.",
+  "authPhone": "Nomor telepon *",
+  "authPhonePrefix": "+62",
+  "authPhoneHint": "81234567890",
+  "authPhoneRequired": "Isi nomor telepon.",
+  "authPhoneInvalid": "Masukkan nomor telepon yang valid.",
+  "authEmailFromProvider": "Email dari akun Google / Apple",
+  "authEmailLinked": "(Terhubung, Tidak dapat diubah di sini)",
+  "authEmail": "Email *",
+  "authEmailHint": "Masukkan alamat email",
+  "authEmailRequired": "Isi alamat email.",
+  "authEmailInvalid": "Masukkan alamat email yang valid.",
+  "authBirthDate": "Tanggal lahir (opsional)",
+  "authDateHint": "DD / MM / YYYY",
+  "authGender": "Jenis Kelamin (opsional)",
+  "authGenderHint": "Pilih Jenis Kelamin",
+  "authGenderUnspecified": "Tidak diisi",
+  "authGenderMale": "Laki-laki",
+  "authGenderFemale": "Perempuan",
+  "authReferral": "Kode Referral (opsional)",
+  "authReferralHint": "Masukkan kode referral",
+  "authConsent": "Dengan mendaftar, kamu menyetujui Syarat & Ketentuan dan Kebijakan Privasi.",
+  "authConsentRequired": "Centang persetujuan untuk melanjutkan.",
+  "authCreateAccount": "Buat akun",
+  "authCancel": "Batal",
+  "authRegistrationUnavailable": "Data belum dikirim. Pendaftaran akun belum tersedia."
 }

@@ -17,4 +17,5 @@ jobs:
           channel: stable
           flutter-version: '3.41.9'
           cache: true
-      - run: bash scripts/check.sh
+      - name: Check Flutter and environment mappings
+        run: bash scripts/check.sh

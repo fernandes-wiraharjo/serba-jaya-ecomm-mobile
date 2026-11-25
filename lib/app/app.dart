@@ -34,9 +34,7 @@ class _SerbaJayaAppState extends ConsumerState<SerbaJayaApp> {
   Widget build(BuildContext context) {
     final config = ref.watch(appConfigProvider);
     return MaterialApp.router(
-      onGenerateTitle: (context) => config.displayName.isEmpty
-          ? AppLocalizations.of(context).appName
-          : config.displayName,
+      title: config.displayName,
       debugShowCheckedModeBanner: false,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

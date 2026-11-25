@@ -14,4 +14,8 @@
 4. Backend menerbitkan sesi aplikasi. Repository menyimpan token sesi secara aman. Riverpod mengelola state dan GoRouter mengizinkan kelanjutan ke rute yang terdaftar.
 5. Dio menggunakan token akses aplikasi untuk request terlindungi. Backend memeriksa otorisasi setiap operasi.
 
-Gunakan data source Google, Apple, backend, dan lokal yang terpisah saat fitur tersedia. Token identitas Google/Apple tidak dipakai sebagai bearer ecommerce. Bahas aturan pertukaran token, registrasi, expiry, refresh, revokasi, dan logout, termasuk kegagalan penghapusan lokal setelah proses dimulai ulang, sebelum mengaktifkan provider. SDK provider, login UI, integrasi backend, dan refresh otomatis ditunda. Firebase Authentication tidak digunakan.
+Gunakan data source Google, Apple, backend, dan lokal yang terpisah saat fitur tersedia. Token identitas Google/Apple tidak dipakai sebagai bearer ecommerce. Bahas aturan pertukaran token, registrasi, expiry, refresh, revokasi, dan logout, termasuk kegagalan penghapusan lokal setelah proses dimulai ulang, sebelum mengaktifkan provider. SDK provider, integrasi backend, dan refresh otomatis ditunda. [UI autentikasi](../features/AUTHENTICATION_UI.md) menyediakan titik integrasi untuk Google dan Apple serta formulir registrasi lokal. Firebase Authentication tidak digunakan.
+
+## Identitas aplikasi dan OAuth
+
+Konfigurasi native mempunyai tiga environment dengan ID resmi yang telah diverifikasi: `dev` memakai `id.serbajaya.ecommerce.dev`, `staging` memakai `id.serbajaya.ecommerce.staging`, dan `prod` memakai `id.serbajaya.ecommerce`. Android debug fingerprint lokal dicatat di [data pendaftaran GCP](GCP_OAUTH_REGISTRATION.md). Release signing Android dan Apple Team ID belum dikonfigurasi. Tidak ada client ID atau resource GCP yang dibuat.

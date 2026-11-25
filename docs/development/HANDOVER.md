@@ -9,3 +9,5 @@ Mulai dari [ringkasan proyek](../PROJECT_OVERVIEW.md), [status](../PROJECT_STATU
 5. Bahas [pertanyaan bisnis dan integrasi](../requirements/OPEN_QUESTIONS.md) sebelum mengembangkan fitur terkait. Gunakan [dokumen autentikasi](../integrations/AUTHENTICATION.md) dan [Figma](../integrations/FIGMA.md) untuk memahami status ketergantungan.
 
 Sebelum mengubah tema atau menambah widget visual final, baca [rencana Design System](../architecture/DESIGN_SYSTEM_PLAN.md) dan [hasil audit fondasi](FOUNDATION_REVIEW.md).
+
+Navigasi utama sudah memiliki shell dan widget reusable parsial. Baca [spesifikasi navigasi](../components/BOTTOM_NAVIGATION_BAR.md) dan [boundary Header](../components/HEADER.md); ikon, treatment badge, dan visual Header belum final karena aset/screenshot Figma tidak tersedia lokal.

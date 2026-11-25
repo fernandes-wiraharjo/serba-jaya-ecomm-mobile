@@ -2,25 +2,37 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Serba Jaya (dev)",
+      "name": "Serba Jaya — Development",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "toolArgs": ["--dart-define-from-file=config/dev.example.json"]
+      "toolArgs": [
+        "--flavor",
+        "dev",
+        "--dart-define-from-file=config/dev.example.json"
+      ]
     },
     {
-      "name": "Serba Jaya (staging)",
+      "name": "Serba Jaya — Staging",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "toolArgs": ["--dart-define-from-file=config/staging.example.json"]
+      "toolArgs": [
+        "--flavor",
+        "staging",
+        "--dart-define-from-file=config/staging.example.json"
+      ]
     },
     {
-      "name": "Serba Jaya (prod)",
+      "name": "Serba Jaya — Production",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "toolArgs": ["--dart-define-from-file=config/prod.example.json"]
+      "toolArgs": [
+        "--flavor",
+        "prod",
+        "--dart-define-from-file=config/prod.example.json"
+      ]
     }
   ]
 }

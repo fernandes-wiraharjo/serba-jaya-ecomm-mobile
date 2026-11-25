@@ -13,6 +13,8 @@ enum AppDestination {
   final String path;
   final bool protected;
 
+  static const navigationTabs = [home, cart, chat, orders, profile];
+
   String label(AppLocalizations strings) => switch (this) {
     home => strings.home,
     cart => strings.cart,

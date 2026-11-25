@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "id.serbajaya.dev.serba_jaya_mobile"
+    namespace = "id.serbajaya.ecommerce"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,8 +20,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "id.serbajaya.dev.serba_jaya_mobile"
+        applicationId = "id.serbajaya.ecommerce"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -30,7 +29,23 @@ android {
         versionName = flutter.versionName
     }
 
-
+    flavorDimensions += "environment"
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            resValue("string", "app_name", "Serba Jaya DEV")
+        }
+        create("staging") {
+            dimension = "environment"
+            applicationIdSuffix = ".staging"
+            resValue("string", "app_name", "Serba Jaya STG")
+        }
+        create("prod") {
+            dimension = "environment"
+            resValue("string", "app_name", "Serba Jaya")
+        }
+    }
 }
 
 flutter {

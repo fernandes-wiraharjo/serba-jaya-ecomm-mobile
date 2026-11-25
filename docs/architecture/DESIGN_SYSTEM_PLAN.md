@@ -1,10 +1,10 @@
 # Rencana Design System — Phase 3
 
-Status **DEFERRED** sampai ada persetujuan Phase 3 dan rujukan desain final. Tahap ini hanya menetapkan cara mengorganisasi dan memverifikasi implementasi.
+Status Design System lengkap tetap **DEFERRED** sampai ada persetujuan Phase 3 dan rujukan desain final. Sebagai pekerjaan UI parsial yang diminta, fondasi navigasi memakai token yang tercatat pada inspeksi Figma sebelumnya. Ini bukan pengesahan palet, library, atau sistem desain aplikasi secara menyeluruh.
 
 ## Sumber dan data yang dibutuhkan
 
-Inspeksi sebelumnya mencakup section navigasi `232:5152`. Dua warna, Roboto Medium dan SemiBold, serta aset pada lima komponennya merupakan temuan khusus section tersebut. Rujuk [catatan Figma](../integrations/FIGMA.md).
+Inspeksi sebelumnya mencakup section navigasi `232:5152`. Dua warna, Roboto Medium dan SemiBold, ukuran, serta geometri navigasi merupakan temuan khusus section tersebut. MCP kini membatasi screenshot/konteks lanjutan pada paket Starter; aset navigasi tidak ada di repositori. Rujuk [catatan Figma](../integrations/FIGMA.md). Implementasi ikon dan detail badge sementara diberi label provisional.
 
 - Minta tautan node yang telah disetujui untuk halaman foundations atau library, katalog komponen, dan layar referensi untuk beranda, katalog, autentikasi, keranjang, dan status feedback. Nama serta keberadaan halaman Figma tersebut perlu dikonfirmasi.
 - Inventaris variabel semantik dan alias, koleksi dan mode, palet serta state, skala tipografi dan lisensi font, spacing, radius, elevation, ukuran sentuh, safe area, breakpoint, dan perilaku text scaling. Tanyakan spesifikasi untuk state gelap jika termasuk cakupan.

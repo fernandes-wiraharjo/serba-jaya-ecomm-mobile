@@ -18,6 +18,8 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   shared_preferences: ^2.5.3
   intl: ^0.20.2
+  flutter_svg: ^2.2.3
+  image_picker: ^1.2.3
 
 dev_dependencies:
   flutter_test:
@@ -29,3 +31,15 @@ dev_dependencies:
 flutter:
   generate: true
   uses-material-design: true
+  assets:
+    - assets/auth/
+    - assets/navigation/
+    - assets/header/
+    - assets/fonts/roboto/OFL.txt
+  fonts:
+    - family: SerbaRoboto
+      fonts:
+        - asset: assets/fonts/roboto/Roboto.ttf
+    - family: AuthRoboto
+      fonts:
+        - asset: assets/fonts/roboto/Roboto.ttf

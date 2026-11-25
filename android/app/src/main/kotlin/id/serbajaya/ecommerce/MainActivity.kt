@@ -1,4 +1,4 @@
-package id.serbajaya.dev.serba_jaya_mobile
+package id.serbajaya.ecommerce
 
 import io.flutter.embedding.android.FlutterActivity
 

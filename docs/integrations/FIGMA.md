@@ -1,30 +1,74 @@
-# Verifikasi Figma
+# Integrasi Figma
 
-Pemeriksaan baca saja pada 24 November 2026. [Serba Jaya Ecommerce App](https://www.figma.com/design/gMs1cpj2AGfubJP8slp0yM/Serba-Jaya-Ecommerce-App?node-id=232-5152&t=Bhf7FQ8XTw9gAvax-0), file key `gMs1cpj2AGfubJP8slp0yM`, node `232:5152`.
+Panduan permanen agent ada di [`AGENTS.md`](../../AGENTS.md). Untuk implementasi UI Flutter, gunakan Figma Console MCP (`figma-console`) dan Desktop Bridge secara baca saja; MCP resmi `figma` dan REST tidak dipakai pada pekerjaan ini.
 
-| Pemeriksaan | Hasil |
+## Pemeriksaan koneksi — 25 November 2026
+
+| Pemeriksaan | Hasil aktual |
 |---|---|
-| Konektivitas dan autentikasi MCP | **PASS**. `whoami` mengonfirmasi Kahfi Zain, tim Starter, seat Full, dan peran admin tim. |
-| Akses file | **PASS**. `create_session` berhasil setelah pemeriksaan sebelumnya menolak akses karena izin edit. Inspeksi menggunakan operasi baca saja. |
-| Akses node dan konteks | **PASS**. `get_metadata` mengembalikan section *Bottom Navigation Bar*. `get_design_context` pada section hanya memberi hierarki. Lima permintaan terarah pada komponen anak mengembalikan konteks visual dan aset. |
-| Screenshot dan variabel | **PASS**. `get_screenshot` menghasilkan PNG 550 × 831 yang berhasil diambil dan dilihat. `get_variable_defs` mengembalikan dua nilai untuk node ini. |
-| Aset | **PASS** untuk sampel. Konteks tiap varian mencantumkan SVG ikon, dudukan dan tombol Chat, badge, serta PNG mask. Satu SVG dan satu PNG (62 × 62) berhasil diambil untuk verifikasi. Tool `download_assets` tersedia untuk PNG, JPG, SVG, dan PDF. Sampel ekspor berasal dari URL konteks. |
-| Implementasi UI final | **DEFERRED** hingga disetujui secara terpisah. |
+| Figma Console MCP | Terhubung; versi server yang dilaporkan 1.46.0 |
+| Desktop Bridge | Pengguna membuka plugin setelah status awal tidak tersambung. Probe berikutnya berhasil; WebSocket lokal sehat dan operasi Plugin API merespons. Port fallback ditetapkan transport secara dinamis dan tidak dikunci di proyek. |
+| Sesi Figma Desktop | Berhasil membaca file aktif melalui plugin; tidak mengambil atau mencatat token/kredensial maupun identitas akun. |
+| File | `Serba Jaya Ecommerce App`, key `gMs1cpj2AGfubJP8slp0yM`, Page 1 |
+| Node navigasi | `232:5152`, section `Bottom Navigation Bar`, metadata dan screenshot berhasil |
+| Node Header | Lima komponen di bawah berhasil ditemukan dan dibaca dari Desktop Bridge |
+| REST / MCP resmi | Tidak dipakai |
 
-## Temuan pada node yang diperiksa
+## Tool Figma Console yang digunakan
 
-| Area | Data dari MCP |
+- `figma_get_status` (probe), `figma_diagnose`, `figma_list_open_files` untuk transport dan file aktif.
+- `figma_search_components` untuk menemukan Header.
+- `figma_get_file_data` untuk hierarki node navbar.
+- `figma_execute` untuk membaca Plugin API lokal dan menguji ekspor vector, tanpa mutasi desain.
+- `figma_capture_screenshot` untuk sepuluh screenshot referensi.
+
+Keterbatasan yang ditemui: `figma_get_component_for_development` terkena HTTP `429 rate limit` dalam inspeksi terdahulu dan tidak dicoba berulang. Ekspor root component dengan `node.exportAsync({format:'SVG'})` gagal karena tidak memiliki visible layers. Plugin API memakai `dynamic-page`, sehingga percobaan sinkron `getNodeById` ditolak; pembacaan berhasil setelah memakai `getNodeByIdAsync`. Runtime plugin tidak menyediakan `TextDecoder`; byte SVG didekodekan dengan cara lain. Child vector yang terlihat lalu berhasil diekspor lokal: Cart `474:4792`, Bell `474:4787`. Dokumen Figma tidak diubah.
+
+Screenshot referensi: [`docs/verification/figma/`](../verification/figma/). Crop aset yang dipakai aplikasi berada di `assets/navigation/` dan `assets/header/`; aset itu adalah raster screenshot crop, bukan file SVG/PNG asli yang diekspor terpisah.
+
+## Bottom Navigation — node `232:5152`
+
+Section berisi lima komponen state terpilih, semuanya 390 × 90 px:
+
+| Tujuan | Node komponen |
 |---|---|
-| Komponen yang dapat digunakan kembali | Lima komponen dengan status tab aktif, masing-masing berukuran 390 × 90: Beranda `176:3135`, Keranjang `176:3119`, Chat `176:3103`, Pesanan `176:3087`, dan Profil `176:3071`. |
-| Token dan warna | `Primary` `#FF0000` untuk status aktif dan `Text Gray` `#858585` untuk status nonaktif. Konteks juga menunjukkan latar dan angka badge berwarna putih. |
-| Tipografi | Roboto Medium dan SemiBold. Label 10 px, angka badge 8 px, dengan tinggi baris 1,35× dalam konteks. |
-| Tata letak | Pojok atas 24 px, slot label 60 px, area ikon 24 × 24 px, dan jarak vertikal ikon ke label 6 px. Tombol Chat 56 × 56 px berada di tengah dan menonjol 20 px dari tepi atas bar. Badge Keranjang 14 × 14 px memuat angka contoh, tanpa menetapkan aturan bisnis jumlahnya. |
-| Cakupan aset | SVG untuk ikon Beranda, Keranjang, Pesanan, dan Profil, SVG untuk tombol/dudukan Chat dan badge, serta PNG sebagai mask logo Chat. URL MCP berumur pendek dan tidak disimpan dalam repositori. |
+| Beranda | `176:3135` |
+| Keranjang | `176:3119` |
+| Chat | `176:3103` |
+| Pesanan | `176:3087` |
+| Profil | `176:3071` |
 
-Hasil ini berlaku pada section dan lima komponennya. Koleksi token, library, breakpoint, spesifikasi aksesibilitas, dan layar lain belum diaudit. Nama `symbol` berasal dari metadata MCP; struktur component set native belum diverifikasi.
+Nilai yang tercatat dari Plugin API/screenshot:
 
-## Alur Figma ke Flutter setelah persetujuan UI
+- Permukaan putih `#FFFFFF`; cradle Chat `#FCFBF8`; radius atas 24 px.
+- Shadow bar `#2E261F` dengan alpha sekitar 0.07, offset `(0,-4)`, blur 20 px.
+- Warna aktif `#FF0000`, nonaktif `#858585`; label Roboto 10 px dengan tinggi baris 13.5 px.
+- Label aktif Beranda memakai SemiBold; state aktif lain Medium. Ikon berada dalam frame 24 × 24 px, dengan jarak vertikal 6 px ke label.
+- Slot 60 px dengan pusat X 40, 114, 195, 276, 350 pada lebar 390 px. Ikon outline home sekitar 18 × 18, cart 20 × 18, order 12 × 19, profil 18 × 19 px.
+- Badge Keranjang merah 14 × 14 px, angka putih Roboto 8 px. Angka `8` adalah contoh visual, bukan data bisnis.
+- Cradle Chat 70 × 70 px di `(160,-27)`; tombol merah 56 × 56 px di `(167,-20)`, shadow merah alpha .23, offset Y5, blur10; logo mask putih sekitar 31 × 31 px.
 
-1. Konfirmasi node dan status aktif yang disetujui. Ambil metadata, screenshot, konteks pada komponen, dan variabel yang dipakai. Cocokkan screenshot dengan state sebelum mengerjakan widget.
-2. Petakan nilai yang disetujui ke `ThemeData`, `ThemeExtension`, dan widget bersama. Gunakan konteks React/Tailwind dari MCP sebagai spesifikasi visual untuk Flutter. Pertahankan aksesibilitas, safe area, locale aplikasi, dan aturan guard di GoRouter.
-3. Ekspor aset yang disetujui ke bentuk lokal yang sesuai. Pastikan ikon dan mask/logo Chat siap digunakan lintas platform. Periksa state aktif, badge dinamis, kontras, ukuran sentuh, dan skala teks di Android/iOS. Gunakan screenshot sebagai referensi pembanding.
+Widget menerapkan geometri, warna, shadow, state aktif/nonaktif, badge dinamis, dan safe area. Rincian ada di [Bottom Navigation Bar](../components/BOTTOM_NAVIGATION_BAR.md).
+
+## Header yang ditemukan
+
+`figma_search_components(query: "Header")` menemukan lima Header di Page 1:
+
+| Node | Nama | Dimensi / isi utama |
+|---|---|---|
+| `2:1753` | Header Mobile | 390 × 55; logo, search, menu; latar `#FCFBF8` |
+| `427:1281` | Header Page Name + Icon | 390 × 55; back, judul 18 px Bold, cart + badge; putih |
+| `427:1170` | Header Mobile - Search + Cart | 390 × 55; field 287 × 38, back, cart |
+| `427:1249` | Header Mobile - Search + (x) + Cart | state query terisi dengan clear 18 × 18 |
+| `474:4779` | Header Mobile | 390 × 55; logo, cart, notifikasi; latar `#FCFBF8` |
+
+Header memakai Roboto, judul `#333333`, field `#F8F9FB` dengan border `#DDE1E6` 0.5 px dan radius12, badge14 px. Pada node `474:4779`, Cart vector berukuran 20 × 18 px di posisi `(304,19)` dan Bell berukuran 14 × 18.25 px di `(345,19)`; masing-masing badge contoh berukuran 14 × 14 px. Shadow pada empat varian lama berupa hitam 15% dengan blur24; varian Mobile cart/notifikasi yang terakhir tidak menampilkan shadow pada screenshot. Teks `Detail Produk`, query `Jeruk`, dan angka badge `8` adalah konten sampel.
+
+MCP Console tidak mengembalikan koleksi variable/design-token untuk inspeksi sesi ini. Nilai warna dan tipografi di atas dibaca dari fills, style teks, efek, geometri, dan screenshot Plugin API lokal; jangan menganggapnya sebagai audit lengkap variable library. Implementasi dan pemetaan sementara dibahas di [Header](../components/HEADER.md).
+
+## Batas verifikasi
+
+- Perbandingan visual Flutter tersedia jika screenshot aplikasi runtime berhasil ditangkap; status dan tautannya dicatat di [status proyek](../PROJECT_STATUS.md).
+- Aset asli vektor resolusi tinggi masih dibutuhkan untuk ketajaman terbaik pada density tinggi. Daftar screenshot dan node lokal di atas dapat dipakai untuk ekspor manual bila Desktop Bridge export kembali tersedia.
+- Hanya data yang didukung node dan screenshot yang diimplementasikan. Node atau screen yang tidak ada tidak dijadikan alasan untuk mengarang alur produk.
+- Section Autentikasi yang dibaca dalam task terdahulu tercatat di [UI Autentikasi](../features/AUTHENTICATION_UI.md).

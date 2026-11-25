@@ -3,17 +3,22 @@ import 'package:serba_jaya_mobile/app/theme/app_theme.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/widgets/auth_action_button.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/widgets/auth_graphics.dart';
 import 'package:serba_jaya_mobile/l10n/generated/app_localizations.dart';
+import 'package:serba_jaya_mobile/shared/motion/app_overlays.dart';
 
-Future<bool?> showLoginRequiredDialog(BuildContext context) => showDialog<bool>(
-  context: context,
-  useRootNavigator: true,
-  barrierDismissible: true,
-  barrierColor: Colors.black.withValues(alpha: 0.4),
-  builder: (dialogContext) => LoginRequiredDialog(
-    onClose: () => Navigator.of(dialogContext, rootNavigator: true).pop(false),
-    onLogin: () => Navigator.of(dialogContext, rootNavigator: true).pop(true),
-  ),
-);
+Future<bool?> showLoginRequiredDialog(BuildContext context) =>
+    showAppDialog<bool>(
+      context: context,
+      builder: (dialogContext) => LoginRequiredDialog(
+        onClose: () => _dismiss(dialogContext, false),
+        onLogin: () => _dismiss(dialogContext, true),
+      ),
+    );
+
+void _dismiss(BuildContext context, bool loginRequested) {
+  if (ModalRoute.isCurrentOf(context) ?? false) {
+    Navigator.of(context).pop(loginRequested);
+  }
+}
 
 class LoginRequiredDialog extends StatelessWidget {
   const LoginRequiredDialog({

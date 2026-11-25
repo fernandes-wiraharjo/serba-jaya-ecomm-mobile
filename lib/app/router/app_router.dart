@@ -5,31 +5,28 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:serba_jaya_mobile/app/config/app_config.dart';
 import 'package:serba_jaya_mobile/app/router/app_destination.dart';
+import 'package:serba_jaya_mobile/app/router/auth_routes.dart';
 import 'package:serba_jaya_mobile/app/shell/main_shell.dart';
 import 'package:serba_jaya_mobile/app/theme/app_theme.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/pages/auth_onboarding_page.dart';
-import 'package:serba_jaya_mobile/features/auth/presentation/pages/login_page.dart';
-import 'package:serba_jaya_mobile/features/auth/presentation/pages/registration_page.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/session_controller.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/widgets/login_required_dialog.dart';
 import 'package:serba_jaya_mobile/features/home/presentation/home_placeholder.dart';
 import 'package:serba_jaya_mobile/l10n/generated/app_localizations.dart';
+import 'package:serba_jaya_mobile/shared/motion/app_page_transitions.dart';
+import 'package:serba_jaya_mobile/shared/motion/app_tab_transition.dart';
 import 'package:serba_jaya_mobile/shared/widgets/feedback_panel.dart';
 import 'package:serba_jaya_mobile/shared/widgets/header/header_mobile.dart';
 import 'package:serba_jaya_mobile/shared/widgets/header/header_page_title.dart';
 
-const _sessionCheck = '/session';
-const _login = '/login';
-const _register = '/login/register';
-const _authPaths = {_login, _register};
-final Set<NavigatorState> _activeLoginDialogs = {};
+export 'auth_routes.dart' show sessionRedirect;
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final isDevelopment =
       ref.watch(appConfigProvider).environment == AppEnvironment.dev;
   final refresh = ValueNotifier(0);
-  ref.listen(sessionProvider, (_, _) => refresh.value++);
   final rootNavigatorKey = GlobalKey<NavigatorState>();
+  final requests = _ShellNavigation(ref, rootNavigatorKey);
   final router = GoRouter(
     navigatorKey: rootNavigatorKey,
     refreshListenable: refresh,
@@ -38,210 +35,259 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ref.read(sessionProvider),
       now: ref.read(sessionClockProvider)(),
     ),
-    errorBuilder: (context, _) => Scaffold(
-      body: FeedbackPanel(message: AppLocalizations.of(context).notFound),
+    errorPageBuilder: (context, state) => AppTransitionPage<void>(
+      key: state.pageKey,
+      child: Scaffold(
+        body: FeedbackPanel(message: AppLocalizations.of(context).notFound),
+      ),
     ),
     routes: [
       GoRoute(
-        path: _sessionCheck,
+        path: authSessionPath,
         pageBuilder: (_, state) => NoTransitionPage<void>(
           key: state.pageKey,
           child: const AuthOnboardingPage(),
         ),
       ),
-      ..._authenticationRoutes(rootNavigatorKey),
-      ShellRoute(
-        builder: (context, state, child) {
-          final routeDestination = AppDestination.fromPath(state.uri.path);
-          return MainShell(
-            destination:
-                AppDestination.navigationTabs.contains(routeDestination)
-                ? routeDestination
-                : null,
-            headerSurfaceColor: routeDestination == AppDestination.home
-                ? AppColors.headerHomeSurface
-                : AppColors.headerSurface,
-            headerBuilder: (context, destination, badgeCounts) {
-              if (destination == null) return null;
-              if (destination == AppDestination.home) {
-                return HeaderMobileActions(
-                  cartCount: badgeCounts[AppDestination.cart] ?? 0,
-                  notificationCount:
-                      badgeCounts[AppDestination.notifications] ?? 0,
-                  onCartTap: () => _requestDestination(
-                    context,
-                    AppDestination.cart,
-                    ref.read(sessionProvider),
-                    ref.read(sessionClockProvider)(),
-                  ),
-                  onNotificationsTap: () => _requestDestination(
-                    context,
-                    AppDestination.notifications,
-                    ref.read(sessionProvider),
-                    ref.read(sessionClockProvider)(),
-                  ),
-                );
-              }
-
-              return HeaderPageTitle(
-                title: destination.label(AppLocalizations.of(context)),
-                onBack: () => context.go(AppDestination.home.path),
-                cartCount: badgeCounts[AppDestination.cart] ?? 0,
-                onCartTap: destination == AppDestination.cart
-                    ? null
-                    : () => _requestDestination(
-                        context,
-                        AppDestination.cart,
-                        ref.read(sessionProvider),
-                        ref.read(sessionClockProvider)(),
-                      ),
-              );
-            },
-            onDestinationSelected: (destination) => _requestDestination(
-              context,
-              destination,
-              ref.read(sessionProvider),
-              ref.read(sessionClockProvider)(),
-            ),
-            child: child,
-          );
-        },
-        routes: [
-          for (final destination in AppDestination.values)
-            GoRoute(
-              path: destination.path,
-              builder: (context, _) => isDevelopment
-                  ? _placeholder(
-                      context,
-                      destination,
-                      onNotificationsRequested: () => _requestDestination(
-                        context,
-                        AppDestination.notifications,
-                        ref.read(sessionProvider),
-                        ref.read(sessionClockProvider)(),
-                      ),
-                    )
-                  : FeedbackPanel(
-                      message: AppLocalizations.of(context).unavailable,
-                    ),
-            ),
-        ],
-      ),
+      ...authenticationRoutes(rootNavigatorKey),
+      _mainShellRoute(requests, isDevelopment),
     ],
   );
+  ref.listen(sessionProvider, (_, session) {
+    // GoRouter refreshes the base URI of an imperative stack. Check the
+    // visible auth page first so a validated session still resumes its target.
+    if (router.routerDelegate.currentConfiguration.isNotEmpty) {
+      final uri = router.state.uri;
+      if (authPagePaths.contains(uri.path) && session is SessionAuthenticated) {
+        final target = sessionRedirect(
+          uri,
+          session,
+          now: ref.read(sessionClockProvider)(),
+        );
+        if (target != null) {
+          router.go(target);
+          return;
+        }
+      }
+    }
+    refresh.value++;
+  });
   ref.onDispose(refresh.dispose);
   ref.onDispose(router.dispose);
   return router;
 });
 
-List<RouteBase> _authenticationRoutes(GlobalKey<NavigatorState> root) => [
-  GoRoute(
-    path: '/login',
-    parentNavigatorKey: root,
-    builder: (context, state) => LoginPage(
-      onClose: () => context.go(AppDestination.home.path),
-      onRegister: () => context.go(
-        _authLocation(
-          _register,
-          _protectedPath(state.uri.queryParameters['from']),
-        ),
+StatefulShellRoute _mainShellRoute(
+  _ShellNavigation requests,
+  bool isDevelopment,
+) => StatefulShellRoute(
+  navigatorContainerBuilder: (_, shell, children) => Consumer(
+    builder: (context, ref, _) => _ShellSessionAccess(
+      allowed: hasActiveSession(
+        ref.watch(sessionProvider),
+        ref.read(sessionClockProvider)(),
       ),
+      child: AppTabTransition(index: shell.currentIndex, children: children),
     ),
-    routes: [
-      GoRoute(
-        path: 'register',
-        parentNavigatorKey: root,
-        builder: (context, state) => RegistrationPage(
-          onCancel: () => context.go(
-            _authLocation(
-              _login,
-              _protectedPath(state.uri.queryParameters['from']),
-            ),
-          ),
-        ),
-      ),
-    ],
   ),
-];
+  pageBuilder: (_, state, shell) => AppTransitionPage<void>(
+    key: state.pageKey,
+    child: Builder(
+      builder: (context) {
+        final destination = AppDestination.fromPath(state.uri.path);
+        void open(AppDestination target) =>
+            requests.open(context, shell, target, current: destination);
 
-String? _protectedPath(String? path) {
-  final destination = path == null ? null : AppDestination.fromPath(path);
-  return destination?.protected == true ? destination?.path : null;
-}
+        return MainShell(
+          destination: AppDestination.navigationTabs.contains(destination)
+              ? destination
+              : null,
+          headerSurfaceColor: destination == AppDestination.home
+              ? AppColors.headerHomeSurface
+              : AppColors.headerSurface,
+          headerBuilder: (context, destination, badgeCounts) {
+            if (destination == null) return null;
+            if (destination == AppDestination.home) {
+              return HeaderMobileActions(
+                cartCount: badgeCounts[AppDestination.cart] ?? 0,
+                notificationCount:
+                    badgeCounts[AppDestination.notifications] ?? 0,
+                onCartTap: () => open(AppDestination.cart),
+                onNotificationsTap: () => open(AppDestination.notifications),
+              );
+            }
+            return HeaderPageTitle(
+              title: destination.label(AppLocalizations.of(context)),
+              onBack: () => context.go(AppDestination.home.path),
+              cartCount: badgeCounts[AppDestination.cart] ?? 0,
+              onCartTap: destination == AppDestination.cart
+                  ? null
+                  : () => open(AppDestination.cart),
+            );
+          },
+          onDestinationSelected: open,
+          child: shell,
+        );
+      },
+    ),
+  ),
+  branches: [
+    for (final destination in AppDestination.navigationTabs)
+      StatefulShellBranch(
+        routes: [
+          GoRoute(
+            path: destination.path,
+            pageBuilder: (_, state) =>
+                _destinationPage(state, destination, requests, isDevelopment),
+            routes: [
+              if (destination == AppDestination.home)
+                GoRoute(
+                  path: 'notifications',
+                  pageBuilder: (_, state) => _destinationPage(
+                    state,
+                    AppDestination.notifications,
+                    requests,
+                    isDevelopment,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+  ],
+);
 
-String _authLocation(String path, String? from, {String? next}) {
-  final query = {'from': ?from, 'next': ?next};
-  return Uri(
-    path: path,
-    queryParameters: query.isEmpty ? null : query,
-  ).toString();
-}
-
-void _requestDestination(
-  BuildContext context,
+Page<void> _destinationPage(
+  GoRouterState state,
   AppDestination destination,
-  SessionState session,
-  DateTime now,
-) {
-  final redirect = sessionRedirect(
-    Uri.parse(destination.path),
-    session,
-    now: now,
-  );
-  if (redirect == null) {
-    context.go(destination.path);
-    return;
-  }
-
-  final target = Uri.parse(redirect);
-  if (target.path == _sessionCheck || !destination.protected) {
-    context.go(redirect);
-    return;
-  }
-
-  final navigator = Navigator.of(context, rootNavigator: true);
-  if (!_activeLoginDialogs.add(navigator)) return;
-  unawaited(
-    showLoginRequiredDialog(context).then((loginRequested) {
-      _activeLoginDialogs.remove(navigator);
-      if (loginRequested == true && context.mounted) {
-        context.go(_authLocation(_login, destination.path));
+  _ShellNavigation requests,
+  bool isDevelopment,
+) => AppTransitionPage<void>(
+  key: state.pageKey,
+  child: Builder(
+    builder: (context) {
+      if (destination.protected && !_ShellSessionAccess.isAllowed(context)) {
+        return const SizedBox.expand();
       }
-    }),
-  );
+      return isDevelopment
+          ? _placeholder(
+              context,
+              destination,
+              onNotificationsRequested: () =>
+                  requests.openNotifications(context),
+            )
+          : FeedbackPanel(message: AppLocalizations.of(context).unavailable);
+    },
+  ),
+);
+
+// Riverpod pauses consumers in inactive branches. An inherited value keeps
+// the access rule effective for retained screens even while their tickers stop.
+class _ShellSessionAccess extends InheritedWidget {
+  const _ShellSessionAccess({required this.allowed, required super.child});
+
+  final bool allowed;
+
+  static bool isAllowed(BuildContext context) =>
+      context
+          .dependOnInheritedWidgetOfExactType<_ShellSessionAccess>()
+          ?.allowed ??
+      false;
+
+  @override
+  bool updateShouldNotify(_ShellSessionAccess oldWidget) =>
+      oldWidget.allowed != allowed;
 }
 
-/// Resume only registered routes. Incoming URLs do not become redirect targets.
-String? sessionRedirect(
-  Uri uri,
-  SessionState session, {
-  required DateTime now,
-}) {
-  final path = uri.path;
-  final isAuth = _authPaths.contains(path);
-  final checking = path == _sessionCheck;
-  final from = _protectedPath(
-    isAuth || checking ? uri.queryParameters['from'] : path,
+class _ShellNavigation {
+  _ShellNavigation(this._ref, this._root);
+
+  final Ref _ref;
+  final GlobalKey<NavigatorState> _root;
+  bool _authDialogOpen = false;
+
+  void open(
+    BuildContext context,
+    StatefulNavigationShell shell,
+    AppDestination destination, {
+    AppDestination? current,
+  }) {
+    if (!_canNavigate(context)) return;
+    final redirect = _redirect(destination);
+    if (redirect != null) {
+      _handleBlocked(context, destination, redirect);
+    } else if (destination == AppDestination.notifications) {
+      if (current != destination) context.go(destination.path);
+    } else {
+      final index = AppDestination.navigationTabs.indexOf(destination);
+      if (index != shell.currentIndex) {
+        shell.goBranch(index);
+      } else if (current == AppDestination.notifications) {
+        context.pop();
+      }
+    }
+  }
+
+  void openNotifications(BuildContext context) {
+    if (!_canNavigate(context)) return;
+    const destination = AppDestination.notifications;
+    final redirect = _redirect(destination);
+    if (redirect == null) {
+      context.go(destination.path);
+    } else {
+      _handleBlocked(context, destination, redirect);
+    }
+  }
+
+  bool _canNavigate(BuildContext context) =>
+      !_authDialogOpen &&
+      !(_root.currentState?.userGestureInProgress ?? false) &&
+      ModalRoute.isCurrentOf(context) == true;
+
+  String? _redirect(AppDestination destination) => sessionRedirect(
+    Uri.parse(destination.path),
+    _ref.read(sessionProvider),
+    now: _ref.read(sessionClockProvider)(),
   );
 
-  if (session is SessionInitializing) {
-    if (checking || (!isAuth && from == null)) return null;
-    return _authLocation(_sessionCheck, from, next: isAuth ? path : null);
+  void _handleBlocked(
+    BuildContext context,
+    AppDestination destination,
+    String redirect,
+  ) {
+    if (Uri.parse(redirect).path == authSessionPath || !destination.protected) {
+      context.go(redirect);
+    } else {
+      unawaited(_openAuthDialog(context, destination));
+    }
   }
 
-  final signedIn =
-      session is SessionAuthenticated && session.session.isUsableAt(now);
-  if (signedIn) {
-    return isAuth || checking ? from ?? AppDestination.home.path : null;
-  }
-  if (checking) {
-    final next = uri.queryParameters['next'];
-    if (next != null && _authPaths.contains(next)) {
-      return _authLocation(next, from);
+  Future<void> _openAuthDialog(
+    BuildContext context,
+    AppDestination destination,
+  ) async {
+    _authDialogOpen = true;
+    try {
+      final loginRequested = await showLoginRequiredDialog(context);
+      if (loginRequested != true ||
+          !context.mounted ||
+          ModalRoute.isCurrentOf(context) != true) {
+        return;
+      }
+      final redirect = _redirect(destination);
+      if (redirect == null) {
+        context.go(destination.path);
+      } else if (Uri.parse(redirect).path == authSessionPath) {
+        context.go(redirect);
+      } else {
+        unawaited(
+          context.push<void>(authLocation(authLoginPath, destination.path)),
+        );
+      }
+    } finally {
+      _authDialogOpen = false;
     }
-    return AppDestination.home.path;
   }
-  return !isAuth && from != null ? AppDestination.home.path : null;
 }
 
 Widget _placeholder(

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:serba_jaya_mobile/app/app.dart';
 import 'package:serba_jaya_mobile/app/config/app_config.dart';
+import 'package:serba_jaya_mobile/app/config/auth_provider.dart';
 import 'package:serba_jaya_mobile/app/theme/app_theme.dart';
 import 'package:serba_jaya_mobile/core/storage/storage_providers.dart';
 import 'package:serba_jaya_mobile/features/auth/data/secure_session_repository.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/session_controller.dart';
+import 'package:serba_jaya_mobile/features/auth/presentation/sign_in_action.dart';
 import 'package:serba_jaya_mobile/l10n/generated/app_localizations.dart';
 import 'package:serba_jaya_mobile/shared/widgets/feedback_panel.dart';
 
@@ -17,6 +19,9 @@ void bootstrap() {
       ProviderScope(
         overrides: [
           appConfigProvider.overrideWithValue(config),
+          requestGoogleIdTokenProvider.overrideWith(
+            (ref) => ref.watch(googleIdTokenProvider),
+          ),
           sessionRepositoryProvider.overrideWith(
             (ref) => SecureSessionRepository(ref.watch(secureStoreProvider)),
           ),

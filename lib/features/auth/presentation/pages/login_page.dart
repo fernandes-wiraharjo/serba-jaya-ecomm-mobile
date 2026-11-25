@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:serba_jaya_mobile/app/theme/app_theme.dart';
+import 'package:serba_jaya_mobile/core/errors/app_failure.dart';
+import 'package:serba_jaya_mobile/features/auth/domain/sign_in_failure.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/sign_in_action.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/widgets/auth_action_button.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/widgets/auth_graphics.dart';
@@ -25,19 +28,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (_pending != null) return;
     final strings = AppLocalizations.of(context);
     final action = ref.read(signInActionProvider);
-    if (action == null) {
-      setState(() => _notice = strings.authProviderUnavailable);
-      return;
-    }
-
     setState(() {
       _pending = method;
       _notice = null;
     });
     try {
       await action(method);
-    } on Exception {
-      if (mounted) setState(() => _notice = strings.authProviderFailed);
+    } on Exception catch (error) {
+      final notice = switch (error) {
+        SignInUnavailable.provider => strings.authProviderUnavailable,
+        SignInUnavailable.configuration => strings.authGoogleConfiguration,
+        SignInUnavailable.backend => strings.authGoogleBackendUnavailable,
+        AppFailure(kind: FailureKind.cancelled) => null,
+        AppFailure(kind: FailureKind.network) => strings.offline,
+        AppFailure(kind: FailureKind.timeout) => strings.timeout,
+        _ => strings.authProviderFailed,
+      };
+      if (mounted) setState(() => _notice = notice);
     } finally {
       if (mounted) setState(() => _pending = null);
     }
@@ -148,18 +155,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         textAlign: TextAlign.center,
       ),
       const SizedBox(height: AppSpacing.authSectionGap),
-      AuthActionButton(
-        label: strings.authApple,
-        onPressed: _pending == null
-            ? () => _requestSignIn(AuthSignInMethod.apple)
-            : null,
-        radius: AppRadius.control,
-        trailing: const AuthIcon(AuthAssets.apple),
-        loadingLabel: _pending == AuthSignInMethod.apple
-            ? strings.authPreparing
-            : null,
-      ),
-      const SizedBox(height: AppSpacing.authControlGap),
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ...[
+        AuthActionButton(
+          label: strings.authApple,
+          onPressed: _pending == null
+              ? () => _requestSignIn(AuthSignInMethod.apple)
+              : null,
+          radius: AppRadius.control,
+          trailing: const AuthIcon(AuthAssets.apple),
+          loadingLabel: _pending == AuthSignInMethod.apple
+              ? strings.authPreparing
+              : null,
+        ),
+        const SizedBox(height: AppSpacing.authControlGap),
+      ],
       AuthActionButton(
         label: strings.authGoogle,
         onPressed: _pending == null

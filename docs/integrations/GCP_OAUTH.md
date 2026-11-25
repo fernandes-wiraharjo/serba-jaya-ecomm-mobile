@@ -1,14 +1,18 @@
-# Persiapan Google OAuth 2.0 dan OpenID Connect
+# Google OAuth 2.0 dan OpenID Connect
 
-Dokumen ini menyiapkan arsitektur dan urutan integrasi. Android flavors, iOS schemes, dan ID aplikasi sudah tersedia. Data yang dapat disalin ke registrasi beserta fingerprint debug aktual tercatat di [data pendaftaran GCP OAuth](GCP_OAUTH_REGISTRATION.md). Pembuatan resource, pemasangan client ID, dan SDK sign-in tetap ditunda sampai disetujui.
+Aplikasi menggunakan plugin resmi `google_sign_in` 7.2.0 untuk membuka pemilih akun Google dan memperoleh ID token. Inisialisasi SDK dilakukan saat tombol Google pertama kali digunakan dan konfigurasi lolos pemeriksaan. Integrasi memakai registrasi langsung di Google Cloud dan tidak menggunakan Firebase Authentication. [Panduan plugin Flutter](https://pub.dev/packages/google_sign_in/versions/7.2.0)
 
-| Area | Persiapan setelah disetujui |
-|---|---|
-| Google Cloud | Tentukan proyek per lingkungan atau kebijakan isolasi, OAuth consent screen, scope minimum, akun pengujian, dan pihak yang mengelola publikasi. |
-| Android | Buat Android OAuth Client untuk tiap application ID dengan SHA-1 sertifikat build yang diuji. Debug certificate tersedia untuk pengembangan lokal. Signing release belum dikonfigurasi. |
-| iOS | Buat iOS OAuth Client untuk tiap Bundle ID. Tambahkan reversed client ID callback hanya dari nilai yang dihasilkan GCP setelah disetujui. Team ID belum tersedia. |
-| Backend | Konfirmasi Web OAuth Client ID yang akan menjadi server client ID dan audience ID token. Verifikasi signature, issuer, audience, expiry, dan nonce sesuai kontrak backend. |
-| Lingkungan | Kelola client ID publik dev, staging, dan prod secara terpisah setelah disetujui. Client secret, service account, serta private key hanya berada di backend atau secret manager. |
-| Sign in with Apple | Konfirmasi Apple Developer account, App ID/capability dan audience per lingkungan, nonce, penanganan relay email, serta Services ID/redirect apabila alur Android memerlukannya. Simpan Apple private key di server. |
+## Menyiapkan DEV
 
-Tidak ada Firebase Authentication, OAuth client ID, API key, atau credential provider yang ditambahkan. Lihat [data pendaftaran](GCP_OAUTH_REGISTRATION.md), [alur yang diusulkan](AUTHENTICATION.md), dan [pertanyaan terbuka](../requirements/OPEN_QUESTIONS.md).
+1. Di Google Cloud Console, konfirmasi bahwa ID server DEV yang diberikan adalah klien bertipe **Web application** dan cocok dengan audience yang akan diterima backend. Periksa OAuth consent screen dan akun pengujian bila aplikasi masih berstatus Testing.
+2. Untuk Android, konfirmasi klien bertipe **Android** terdaftar dengan package `id.serbajaya.ecommerce.dev` dan SHA-1 dari sertifikat yang menandatangani APK DEV. Aplikasi meneruskan Web client ID sebagai `serverClientId`; Android client ID tidak dimasukkan ke Dart dan `google-services.json` tidak diperlukan. [Integrasi Android plugin](https://pub.dev/packages/google_sign_in_android/versions/7.2.11)
+3. Untuk iOS, konfirmasi klien bertipe **iOS** untuk Bundle ID `id.serbajaya.ecommerce.dev`. Isi `GOOGLE_IOS_CLIENT_ID` dengan ID tersebut. Daftarkan nilai `REVERSED_CLIENT_ID` dari klien iOS pada `CFBundleURLTypes → CFBundleURLSchemes` untuk build DEV. Jika konfigurasi URL native dipakai bersama beberapa scheme, pisahkan nilai callback melalui build settings per konfigurasi agar staging dan prod memakai klien masing-masing. Aplikasi memeriksa bahwa app bundle yang aktif memuat callback yang cocok sebelum membuka SDK. [Integrasi iOS plugin](https://pub.dev/packages/google_sign_in_ios/versions/6.3.8)
+4. Isi `GOOGLE_SERVER_CLIENT_ID` pada `config/dev.json` lokal dengan Web client ID yang dikonfirmasi. `config/*.example.json` tidak menyertakan ID. Sesudah registrasi native dikonfirmasi, ikuti prosedur uji perangkat fisik dengan konfigurasi lokal. [Panduan lingkungan](../development/ENVIRONMENT.md)
+
+Di Android, SDK dapat melaporkan konfigurasi native yang salah sebagai pembatalan. Jika pemilih akun berulang kali tertutup setelah akun dipilih, periksa jenis server client, registrasi package dan SHA-1, serta akun pengujian. Kegagalan yang dikirim SDK tanpa kode jaringan khusus mendapat pesan umum untuk mencoba lagi. [Pemecahan masalah plugin Android](https://pub.dev/packages/google_sign_in_android/versions/7.2.11#troubleshooting)
+
+## Batas integrasi backend
+
+Google ID token hanya diteruskan selama permintaan aktif melalui `ExchangeGoogleIdentity`. Implementasi HTTP menunggu base URL HTTPS, endpoint, dan kontrak backend. Backend harus memvalidasi signature, issuer, audience, expiry dan, bila digunakan, nonce sesuai kontrak sebelum menentukan registrasi atau menerbitkan sesi aplikasi. Sampai backend tersedia, pemilihan akun tidak membuka rute terlindungi. [Verifikasi token Google](https://developers.google.com/identity/gsi/web/guides/verify-google-id-token) · [Arsitektur autentikasi](AUTHENTICATION.md)
+
+Gunakan klien terpisah per environment. Simpan client secret, service account, dan private key hanya di backend atau secret manager. Jangan menyimpan ID token di aplikasi atau mencatat token dalam log dan pesan error. Data registrasi serta hal yang perlu dikonfirmasi ada di [data pendaftaran GCP](GCP_OAUTH_REGISTRATION.md).

@@ -5,8 +5,8 @@ Sumber visual adalah [section Authentication](https://www.figma.com/design/gMs1c
 | Frame terverifikasi | Implementasi | Perilaku |
 |---|---|---|
 | `157:102` Onboarding | `AuthOnboardingPage` di `/session` | Logo tampil selama pemeriksaan sesi untuk rute yang memerlukan guard. Tamu tetap dapat membuka beranda tanpa menunggu layar pengantar atau timer. |
-| `198:4477` Alert Login | `LoginRequiredDialog` di `/login-required` | Modal muncul saat tamu mencoba membuka rute terlindungi. Masuk meneruskan tujuan yang valid ke Login. Menutup modal mengembalikan akses tamu. |
-| `157:66` Login Akun | `LoginPage` di `/login` | Tombol Google dan Apple memakai aset merek dari Figma. Daftar membuka formulir. Tutup kembali ke beranda. |
+| `198:4477` Alert Login | `LoginRequiredDialog` di Navigator root | Dialog muncul di atas layar yang aktif saat tamu memilih rute terlindungi. Masuk membuka Login setelah transisi dialog selesai. Menutup dialog kembali ke layar asal. |
+| `157:66` Login Akun | `LoginPage` di `/login` | iOS menampilkan Apple lalu Google. Android dan platform lain hanya menampilkan Google. Daftar membuka formulir di atas Login. Tutup kembali ke layar asal, atau ke beranda saat Login dibuka sebagai rute awal. |
 | `198:4334`, `198:4400` Daftar Akun | `RegistrationPage` di `/login/register` | Satu formulir untuk keadaan kosong dan terisi. Foto, tanggal lahir, jenis kelamin, dan referral bersifat opsional. Nama, nomor telepon, email, dan persetujuan diperiksa secara lokal. |
 
 ## Token dan aset
@@ -18,9 +18,9 @@ Sumber visual adalah [section Authentication](https://www.figma.com/design/gMs1c
 
 ## Batas integrasi
 
-- `signInActionProvider` adalah titik integrasi UI dan saat ini mengembalikan `null`. Tombol menampilkan pesan belum tersedia. Jika integrasi kelak memasok callback, UI siap menangani loading, penekanan berulang, dan kegagalan tanpa membuat sesi sendiri. Tujuan setelah login dibatasi oleh guard ke rute terlindungi terdaftar. `SessionController` tetap berwenang membuka akses setelah validasi sesi.
-- Email terhubung ditampilkan baca saja apabila alur provider yang tepercaya memasok nilainya. Karena provider belum aktif, rute Daftar memakai field email yang dapat diisi untuk memenuhi aturan kebutuhan ketika email belum tersedia. Bentuk visual field mengikuti input Figma. Formulir hanya memvalidasi data lokal. Persetujuan, data, dan foto tidak dikirim ke server; pembatalan membuang data lokal.
+- `signInActionProvider` membuka Google Sign-In ketika konfigurasi siap. UI menangani loading, pembatalan, penekanan berulang, dan kegagalan. Sign in with Apple belum diaktifkan. Sesudah memilih akun Google, pengguna tetap tamu sampai integrasi backend menghasilkan sesi aplikasi tervalidasi. [Alur autentikasi](../integrations/AUTHENTICATION.md)
+- Email terhubung ditampilkan baca saja apabila alur provider yang tepercaya memasok nilainya. Sampai hasil registrasi dari backend tersedia, rute Daftar memakai field email yang dapat diisi. Bentuk visual field mengikuti input Figma. Formulir hanya memvalidasi data lokal. Persetujuan, data, dan foto tidak dikirim ke server. Pembatalan membuang data lokal.
 - Pemilih foto memakai galeri sistem dan preview di memori. Android yang menghentikan proses saat membuka galeri akan kehilangan draft lokal. iOS memakai deskripsi akses foto, dengan metadata penuh dimatikan. Kamera, izin mikrofon, dan capability Apple Sign-In tidak dipasang untuk UI ini.
 - Desain belum mencantumkan state gagal, layar Syarat & Ketentuan/Kebijakan Privasi, maupun menu pilihan. Pesan validasi dan status menggunakan teks lokal di dalam halaman. Tanggal lahir dan gender memakai kontrol Flutter. Konfirmasi dokumen legal, opsi gender akhir, aturan provider, dan validasi backend sebelum akun dapat dibuat. [Pertanyaan terbuka](../requirements/OPEN_QUESTIONS.md)
 
-Pengujian dan keterbatasan build dicatat di [status proyek](../PROJECT_STATUS.md).
+Durasi dan pola animasi ada di [sistem gerak](../architecture/MOTION.md). Pengujian dan keterbatasan build dicatat di [status proyek](../PROJECT_STATUS.md).

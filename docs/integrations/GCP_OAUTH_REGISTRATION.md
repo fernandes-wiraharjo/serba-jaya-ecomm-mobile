@@ -1,6 +1,6 @@
 # Data pendaftaran GCP OAuth
 
-Catatan verifikasi 25 November 2026. Data di bawah diambil dari konfigurasi Gradle/Xcode dan debug keystore yang ada di komputer pengembang. Belum ada client OAuth atau resource GCP yang dibuat.
+Catatan verifikasi 25 November 2026. Data di bawah diambil dari konfigurasi Gradle/Xcode dan debug keystore di komputer pengembang. Web client ID DEV diberikan oleh pengguna. Status dan jenis klien diperiksa melalui konfirmasi dari pengelola Google Cloud.
 
 ## Development
 
@@ -15,6 +15,7 @@ Catatan verifikasi 25 November 2026. Data di bawah diambil dari konfigurasi Grad
 | Certificate type | Debug lokal, self-signed X.509, RSA 2048-bit, signature `SHA256withRSA` |
 | Alias / masa berlaku | `AndroidDebugKey` / berakhir 14 Februari 2055 |
 | Kesiapan fingerprint | Siap untuk klien Android development lokal/debug |
+| Registrasi Android OAuth | Perlu konfirmasi pasangan package dan SHA-1 di Google Cloud |
 
 **iOS**
 
@@ -22,13 +23,14 @@ Catatan verifikasi 25 November 2026. Data di bawah diambil dari konfigurasi Grad
 |---|---|
 | OAuth Client Name | `Serba Jaya iOS DEV` |
 | Bundle ID | `id.serbajaya.ecommerce.dev` |
+| Client ID dan reversed URL scheme | Belum diberikan |
 
 **Web/server**
 
 | Kolom | Nilai |
 |---|---|
 | OAuth Client Name | `Serba Jaya Web DEV` |
-| Client ID | Belum dibuat |
+| Client ID | Diberikan untuk konfigurasi DEV lokal. Perlu konfirmasi tipe Web application dan audience backend. |
 
 ## Staging
 
@@ -108,7 +110,7 @@ Debug SHA-1 dan SHA-256 di semua environment berasal dari satu `~/.android/debug
 2. Buat client type **Android** untuk masing-masing package ID di atas dengan SHA-1 dari sertifikat yang menandatangani build yang akan diuji. Untuk Android OAuth, Google meminta pasangan package name dan sertifikat SHA-1. SHA-256 dicatat untuk inventaris sertifikat. [Panduan autentikasi client Android](https://developers.google.com/android/guides/client-auth)
 3. Buat client type **iOS** untuk setiap Bundle ID. Apple Team ID belum tersedia dan tidak diverifikasi di project settings. Google menyebut Team ID opsional saat membuat iOS client, tetapi dibutuhkan jika App Check diaktifkan. [Akses Google API dari iOS](https://developers.google.com/identity/sign-in/ios/api-access)
 4. Setelah menyetujui integrasi iOS, ambil `REVERSED_CLIENT_ID` yang dihasilkan dari iOS OAuth client dan tambahkan URL scheme callback native sesuai petunjuk resmi. Jangan menebak atau menulis URL scheme sebelum ada client ID.
-5. Buat Web application client hanya setelah backend mengonfirmasi audience/client ID per environment, redirect URI, dan origin yang diperlukan. Web client ID adalah server client ID untuk alur ID token backend pada integrasi Google. Client ID belum ada dan tidak di-hardcode.
+5. Konfirmasi tipe Web application dari ID server DEV yang diberikan. Konfirmasi juga audience backend dan kebutuhan redirect URI serta origin per environment sebelum membuat klien tambahan.
 6. Untuk rilis Android, konfigurasi key release terpisah dan catat sertifikat lokal. Jika Play App Signing dipakai, ambil fingerprint app signing key dari Play Console dan daftarkan fingerprint itu pada API provider. Upload key dan app signing key adalah dua sertifikat yang berbeda. [Play App Signing](https://support.google.com/googleplay/android-developer/answer/9842756?hl=en)
 7. Simpan client ID publik melalui konfigurasi per environment setelah persetujuan. Simpan client secret, service account, dan private key hanya di server/secret manager. Server wajib memverifikasi signature token, issuer, audience, expiration, dan nonce sesuai kontrak backend.
 8. Uji callback, audience, pemisahan environment, dan akun pengujian pada Android serta iOS sebelum membuka akses produksi.
@@ -123,7 +125,10 @@ Debug SHA-1 dan SHA-256 di semua environment berasal dari satu `~/.android/debug
 | Production release fingerprint | NOT CONFIGURED — signing key release belum disediakan |
 | Google Play App Signing | NOT VERIFIED — informasi Play Console belum tersedia |
 | iOS Team ID dan provisioning | NOT CONFIGURED — belum disediakan |
-| GCP projects, consent screen, dan OAuth client IDs | DEFERRED — resource tidak dibuat |
-| SDK Sign in with Google / Sign in with Apple | DEFERRED — integrasi provider belum disetujui |
+| GCP project DEV, consent screen, akun uji, dan Web client | PERLU KONFIRMASI — hanya ID server DEV yang diberikan |
+| Android OAuth client DEV | PERLU KONFIRMASI — cocokkan package dan SHA-1 debug |
+| iOS OAuth client DEV | BELUM TERSEDIA — perlu client ID dan reversed URL scheme |
+| SDK Sign in with Google | TERPASANG — OAuth di perangkat belum diverifikasi |
+| Sign in with Apple | DITUNDA |
 
 Lihat [panduan integrasi GCP OAuth](GCP_OAUTH.md), [alur autentikasi](AUTHENTICATION.md), dan [build/release](../development/RELEASE.md).

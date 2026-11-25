@@ -2,5 +2,7 @@
   "APP_ENV": "dev",
   "APP_DISPLAY_NAME": "Serba Jaya DEV",
   "API_BASE_URL": "",
+  "GOOGLE_SERVER_CLIENT_ID": "",
+  "GOOGLE_IOS_CLIENT_ID": "",
   "ENABLE_DEBUG_LOGGING": "true"
 }

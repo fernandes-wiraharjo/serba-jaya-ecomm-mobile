@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:serba_jaya_mobile/app/theme/app_theme.dart';
+import 'package:serba_jaya_mobile/shared/motion/app_press_feedback.dart';
 
 class AuthActionButton extends StatelessWidget {
   const AuthActionButton({
@@ -55,42 +56,46 @@ class AuthActionButton extends StatelessWidget {
     final activeColor = AppColors.authPrimary;
     return SizedBox(
       width: double.infinity,
-      child: filled
-          ? FilledButton(
-              onPressed: onPressed,
-              style: FilledButton.styleFrom(
-                foregroundColor: foreground,
-                backgroundColor: activeColor,
-                disabledForegroundColor: Colors.white,
-                disabledBackgroundColor: activeColor.withValues(alpha: .65),
-                minimumSize: const Size(0, 40),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+      child: AppPressFeedback(
+        builder: (context, states) => filled
+            ? FilledButton(
+                statesController: states,
+                onPressed: onPressed,
+                style: FilledButton.styleFrom(
+                  foregroundColor: foreground,
+                  backgroundColor: activeColor,
+                  disabledForegroundColor: Colors.white,
+                  disabledBackgroundColor: activeColor.withValues(alpha: .65),
+                  minimumSize: const Size(0, 40),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  textStyle: AppTypography.authHeading,
+                  shape: shape,
                 ),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                textStyle: AppTypography.authHeading,
-                shape: shape,
-              ),
-              child: content,
-            )
-          : OutlinedButton(
-              onPressed: onPressed,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: foreground,
-                disabledForegroundColor: foreground.withValues(alpha: .65),
-                minimumSize: const Size(0, 40),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+                child: content,
+              )
+            : OutlinedButton(
+                statesController: states,
+                onPressed: onPressed,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: foreground,
+                  disabledForegroundColor: foreground.withValues(alpha: .65),
+                  minimumSize: const Size(0, 40),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  side: BorderSide(color: outline),
+                  textStyle: AppTypography.authHeading,
+                  shape: shape,
                 ),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                side: BorderSide(color: outline),
-                textStyle: AppTypography.authHeading,
-                shape: shape,
+                child: content,
               ),
-              child: content,
-            ),
+      ),
     );
   }
 }

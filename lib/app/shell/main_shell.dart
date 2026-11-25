@@ -42,13 +42,12 @@ class MainShell extends StatelessWidget {
           if (headerContent != null)
             AppHeader(surfaceColor: headerSurfaceColor, child: headerContent),
           Expanded(
-            child: headerContent == null
-                ? child
-                : MediaQuery.removePadding(
-                    context: context,
-                    removeTop: true,
-                    child: child,
-                  ),
+            key: const ValueKey('shell-body'),
+            child: MediaQuery.removePadding(
+              context: context,
+              removeTop: headerContent != null,
+              child: child,
+            ),
           ),
         ],
       ),

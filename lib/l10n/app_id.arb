@@ -47,6 +47,8 @@
   "authPreparing": "Sedang memproses…",
   "authProviderUnavailable": "Masuk dengan penyedia ini belum tersedia.",
   "authProviderFailed": "Tidak dapat memulai proses masuk. Coba lagi.",
+  "authGoogleConfiguration": "Konfigurasi masuk dengan Google belum siap.",
+  "authGoogleBackendUnavailable": "Akun Google telah dipilih. Layanan masuk Serba Jaya belum tersedia.",
   "authNoAccount": "Belum memiliki akun? ",
   "authRegister": "Daftar",
   "authVersion": "Version.{version}",

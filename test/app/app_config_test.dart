@@ -9,6 +9,23 @@ void main() {
     final config = AppConfig.parse(environment: 'dev');
     expect(config.environment, AppEnvironment.dev);
     expect(config.apiBaseUrl, isNull);
+    expect(config.googleServerClientId, isNull);
+    expect(config.googleIosClientId, isNull);
+  });
+
+  test('reads Google client IDs only from the supplied environment', () {
+    final dev = AppConfig.parse(
+      environment: 'dev',
+      googleServerClientId: '  dev-web.apps.googleusercontent.com  ',
+      googleIosClientId: 'dev-ios.apps.googleusercontent.com',
+    );
+    expect(dev.googleServerClientId, 'dev-web.apps.googleusercontent.com');
+    expect(dev.googleIosClientId, 'dev-ios.apps.googleusercontent.com');
+    for (final environment in ['staging', 'prod']) {
+      final config = AppConfig.parse(environment: environment);
+      expect(config.googleServerClientId, isNull);
+      expect(config.googleIosClientId, isNull);
+    }
   });
 
   test('production forces logging off and normalizes the base path', () {
@@ -82,10 +99,14 @@ void main() {
         displayName: data['APP_DISPLAY_NAME']!,
         apiBaseUrl: data['API_BASE_URL']!,
         debugLogging: data['ENABLE_DEBUG_LOGGING']!,
+        googleServerClientId: data['GOOGLE_SERVER_CLIENT_ID']!,
+        googleIosClientId: data['GOOGLE_IOS_CLIENT_ID']!,
       );
       expect(config.environment.name, env);
       expect(config.displayName, displayName);
       expect(config.apiBaseUrl, isNull);
+      expect(config.googleServerClientId, isNull);
+      expect(config.googleIosClientId, isNull);
       expect(config.debugLogging, env == 'dev');
     }
   });

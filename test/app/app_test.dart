@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:serba_jaya_mobile/app/app.dart';
 import 'package:serba_jaya_mobile/app/config/app_config.dart';
+import 'package:serba_jaya_mobile/app/config/auth_provider.dart';
 import 'package:serba_jaya_mobile/app/router/app_destination.dart';
 import 'package:serba_jaya_mobile/app/router/app_router.dart';
 import 'package:serba_jaya_mobile/app/shell/main_shell.dart';
@@ -12,6 +13,7 @@ import 'package:serba_jaya_mobile/features/auth/presentation/widgets/login_requi
 import 'package:serba_jaya_mobile/l10n/generated/app_localizations.dart';
 import 'package:serba_jaya_mobile/shared/widgets/navigation/app_bottom_nav_bar.dart';
 import 'package:serba_jaya_mobile/features/auth/domain/app_session.dart';
+import 'package:serba_jaya_mobile/features/auth/domain/google_identity.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/pages/auth_onboarding_page.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/pages/registration_page.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/session_controller.dart';
@@ -26,6 +28,7 @@ void main() {
     WidgetTester tester,
     FakeSessionRepository repository, {
     RequestSignIn? signIn,
+    RequestGoogleIdToken? requestGoogleIdToken,
   }) async {
     final container = ProviderContainer(
       overrides: [
@@ -33,6 +36,9 @@ void main() {
           AppConfig.parse(environment: 'dev'),
         ),
         sessionRepositoryProvider.overrideWithValue(repository),
+        requestGoogleIdTokenProvider.overrideWith(
+          (ref) => requestGoogleIdToken ?? ref.watch(googleIdTokenProvider),
+        ),
         if (signIn != null) signInActionProvider.overrideWithValue(signIn),
       ],
     );
@@ -254,20 +260,17 @@ void main() {
 
       final google = find.widgetWithText(OutlinedButton, 'Masuk Dengan Google');
       final apple = find.widgetWithText(FilledButton, 'Masuk Dengan Apple');
-      for (final button in [google, apple]) {
+      for (final (button, notice) in [
+        (google, 'Konfigurasi masuk dengan Google belum siap.'),
+        (apple, 'Masuk dengan penyedia ini belum tersedia.'),
+      ]) {
         await tester.tap(button);
         await tester.pumpAndSettle();
-        expect(
-          find.text('Masuk dengan penyedia ini belum tersedia.'),
-          findsOneWidget,
-        );
+        expect(find.text(notice), findsOneWidget);
         expect(container.read(sessionProvider), isA<SessionGuest>());
         expect(container.read(sessionProvider.notifier).accessToken, isNull);
       }
-      expect(
-        router.routeInformationProvider.value.uri.queryParameters['from'],
-        '/cart',
-      );
+      expect(router.state.uri.queryParameters['from'], '/cart');
 
       final register = find.text(
         'Belum memiliki akun? Daftar',
@@ -277,11 +280,8 @@ void main() {
       await tester.tap(register);
       await tester.pumpAndSettle();
       expect(find.byType(RegistrationPage), findsOneWidget);
-      expect(router.routeInformationProvider.value.uri.path, '/login/register');
-      expect(
-        router.routeInformationProvider.value.uri.queryParameters['from'],
-        '/cart',
-      );
+      expect(router.state.uri.path, '/login/register');
+      expect(router.state.uri.queryParameters['from'], '/cart');
 
       final submit = find.widgetWithText(FilledButton, 'Buat akun');
       await tester.ensureVisible(submit);
@@ -322,12 +322,10 @@ void main() {
       await tester.ensureVisible(cancel);
       await tester.tap(cancel);
       await tester.pumpAndSettle();
-      expect(router.routeInformationProvider.value.uri.path, '/login');
-      expect(
-        router.routeInformationProvider.value.uri.queryParameters['from'],
-        '/cart',
-      );
+      expect(router.state.uri.path, '/login');
+      expect(router.state.uri.queryParameters['from'], '/cart');
     },
+    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
   );
 
   testWidgets(
@@ -364,6 +362,42 @@ void main() {
       expect(container.read(sessionProvider), isA<SessionGuest>());
     },
   );
+
+  testWidgets('Google identity without a backend leaves the user a guest', (
+    tester,
+  ) async {
+    final repository = FakeSessionRepository();
+    final container = await mount(
+      tester,
+      repository,
+      requestGoogleIdToken: () async => 'id-token-fixture',
+    );
+    final router = container.read(appRouterProvider);
+    router.go('/login?from=/cart');
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.widgetWithText(OutlinedButton, 'Masuk Dengan Google'),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Akun Google telah dipilih. Layanan masuk Serba Jaya belum tersedia.',
+      ),
+      findsOneWidget,
+    );
+    expect(container.read(sessionProvider), isA<SessionGuest>());
+    expect(await repository.read(), isNull);
+    expect(
+      router.routeInformationProvider.value.uri.toString(),
+      '/login?from=/cart',
+    );
+
+    router.go('/cart');
+    await tester.pumpAndSettle();
+    expect(router.routeInformationProvider.value.uri.path, '/');
+  });
 
   test('expired credentials cannot open a protected route or resume it', () {
     final now = DateTime.utc(2026, 1);

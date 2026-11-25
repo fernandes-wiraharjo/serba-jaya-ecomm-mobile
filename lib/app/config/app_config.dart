@@ -19,6 +19,8 @@ class AppConfig {
     required this.displayName,
     this.apiBaseUrl,
     this.debugLogging = false,
+    this.googleServerClientId,
+    this.googleIosClientId,
   });
 
   factory AppConfig.fromDefines() => AppConfig.parse(
@@ -26,6 +28,10 @@ class AppConfig {
     nativeFlavor: appFlavor ?? '',
     displayName: const String.fromEnvironment('APP_DISPLAY_NAME'),
     apiBaseUrl: const String.fromEnvironment('API_BASE_URL'),
+    googleServerClientId: const String.fromEnvironment(
+      'GOOGLE_SERVER_CLIENT_ID',
+    ),
+    googleIosClientId: const String.fromEnvironment('GOOGLE_IOS_CLIENT_ID'),
     debugLogging: const String.fromEnvironment(
       'ENABLE_DEBUG_LOGGING',
       defaultValue: 'false',
@@ -38,6 +44,8 @@ class AppConfig {
     String displayName = '',
     String apiBaseUrl = '',
     String debugLogging = 'false',
+    String googleServerClientId = '',
+    String googleIosClientId = '',
   }) {
     final env = AppEnvironment.values.asNameMap()[environment];
     if (env == null) throw const FormatException('APP_ENV');
@@ -71,6 +79,8 @@ class AppConfig {
         path: uri.path.endsWith('/') ? uri.path : '${uri.path}/',
       ),
       debugLogging: env != AppEnvironment.prod && debugLogging == 'true',
+      googleServerClientId: _optionalDefine(googleServerClientId),
+      googleIosClientId: _optionalDefine(googleIosClientId),
     );
   }
 
@@ -78,6 +88,13 @@ class AppConfig {
   final String displayName;
   final Uri? apiBaseUrl;
   final bool debugLogging;
+  final String? googleServerClientId;
+  final String? googleIosClientId;
+}
+
+String? _optionalDefine(String value) {
+  final trimmed = value.trim();
+  return trimmed.isEmpty ? null : trimmed;
 }
 
 final appConfigProvider = Provider<AppConfig>((ref) {

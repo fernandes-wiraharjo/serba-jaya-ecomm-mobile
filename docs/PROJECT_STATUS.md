@@ -1,5 +1,24 @@
 # Status proyek — Multi-environment dan persiapan OAuth
 
+## Pembaruan — Transisi navigasi (25 November 2026)
+
+GoRouter memakai satu Navigator per tab melalui `StatefulShellRoute`. Isi tab berganti dengan fade, sementara Header dan Bottom Navigation Bar tetap di luar transisi tab. Login muncul dari bawah di atas layar asal, Registrasi dan Notifikasi memakai slide Cupertino, dan dialog autentikasi memakai barrier semitransparan. Rute terlindungi yang tersimpan tetap mengikuti status sesi. Lihat [sistem gerak](architecture/MOTION.md).
+
+- `bash scripts/check.sh` lulus. Format dan analisis bersih, dengan 73 tes unit dan widget lulus. Tes baru memeriksa posisi saat animasi, scroll dan stack tab, swipe-back iOS, event predictive back Android, guard, tap ganda, dialog, sheet, dan pengurangan gerakan.
+- Build DEV terpasang dan terbuka di Samsung SM A057F fisik (Android 15). Beranda ke Chat, dialog dengan navbar di belakangnya, Back dari dialog, dan pembukaan Login serta Daftar terverifikasi. Koneksi perangkat terputus sebelum rangkaian uji fisik selesai. Samsung memakai tombol navigasi sistem. Gesture predictive back dan swipe iOS diverifikasi di widget tester.
+- Uji native iOS dan pengukuran frame time masih tertunda. Helper bottom sheet dan Hero tersedia untuk fitur yang memiliki referensi desain dan pasangan elemen yang sesuai.
+
+## Pembaruan — Google Sign-In DEV (25 November 2026)
+
+Tombol Google terhubung ke `google_sign_in` 7.2.0 pada Flutter 3.41.9 dan Dart 3.11.5. Riverpod mengatur satu permintaan aktif dari pemilih akun hingga batas pertukaran ID token. Tampilan login memakai komponen yang sama serta menampilkan status tunggu dan pesan lokal. ID token provider tidak diangkat menjadi sesi aplikasi. Secure storage, validasi pemulihan sesi, dan guard GoRouter tetap memakai alur yang sudah ada.
+
+- Konfigurasi membaca `GOOGLE_SERVER_CLIENT_ID` dan `GOOGLE_IOS_CLIENT_ID` dari file define setiap environment. File contoh membiarkan keduanya kosong. ID server yang diberikan dimasukkan hanya ke `config/dev.json` lokal yang diabaikan Git. Tipe Web application dan audience masih perlu dikonfirmasi.
+- Android dan iOS DEV memakai `id.serbajaya.ecommerce.dev`. SHA-1 `devDebug` dari Gradle `signingReport` cocok dengan `keytool` dan catatan registrasi. Xcode menampilkan tiga scheme dan sembilan konfigurasi. SDK Google iOS 9.2.0 terpasang lewat CocoaPods dan kode jembatan Swift lolos pemeriksaan tipe untuk target iPhone. Callback URL baru aktif setelah scheme dari klien iOS yang sah terdaftar di app bundle.
+- `bash scripts/check.sh` lulus. Pemeriksaan format dan `flutter analyze` bersih. Seluruh 56 tes unit dan widget lulus, termasuk konfigurasi, pembatalan, error, permintaan ganda, dan akses rute saat exchange belum tersedia. Gradle `checkDevDebugAarMetadata` lulus setelah dependensi baru diambil dari Maven. APK tidak dirakit.
+- Pengujian perangkat fisik dan login menyeluruh tertunda. Registrasi Android dan SHA-1 di Google Cloud, klien iOS beserta callback, Web client, serta kontrak pertukaran Google ID token, registrasi, dan sesi backend masih perlu dikonfirmasi. Sign in with Apple tetap ditunda.
+
+Lihat [setup Google OAuth](integrations/GCP_OAUTH.md), [arsitektur autentikasi](integrations/AUTHENTICATION.md), [data registrasi GCP](integrations/GCP_OAUTH_REGISTRATION.md), dan [konfigurasi lingkungan](development/ENVIRONMENT.md).
+
 ## Pembaruan — Ikon Chat Bottom Navigation Bar (25 November 2026)
 
 Logo tombol Chat kini memakai `assets/navigation/chat-branding-icon.png` dan dirender proporsional (`BoxFit.contain`) pada lingkaran merah yang selalu sama di seluruh state navbar. Cradle 70 px `#FCFBF8` di belakang tombol 56 px membentuk ring terang sesuai Figma; node tombol merah sendiri tidak mempunyai stroke. Ukuran, posisi, shadow, label, dan ring diverifikasi pada lima variant `232:5152` melalui screenshot Desktop Bridge dan pembacaan Plugin API lokal. Permintaan metadata file mengembalikan HTTP 429; tidak diulang.

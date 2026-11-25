@@ -27,4 +27,4 @@ bash scripts/check.sh
 
 [Kontribusi](CONTRIBUTING.md) · [Catatan perubahan](CHANGELOG.md) · [Panduan agen](AGENTS.md)
 
-Data pendaftaran OAuth Android dan iOS serta status sertifikat tercatat di [panduan GCP OAuth](docs/integrations/GCP_OAUTH_REGISTRATION.md). OAuth provider belum diaktifkan.
+Google Sign-In DEV tersedia di kode. Uji perangkat menunggu konfirmasi klien OAuth, dan login aplikasi menunggu pertukaran token dengan backend. [Panduan GCP OAuth](docs/integrations/GCP_OAUTH.md)

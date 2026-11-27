@@ -5,6 +5,8 @@ import 'package:serba_jaya_mobile/app/config/app_config.dart';
 import 'package:serba_jaya_mobile/app/config/auth_provider.dart';
 import 'package:serba_jaya_mobile/app/theme/app_theme.dart';
 import 'package:serba_jaya_mobile/core/storage/storage_providers.dart';
+import 'package:serba_jaya_mobile/core/location/location_providers.dart';
+import 'package:serba_jaya_mobile/core/ui/scroll/app_scroll_behavior.dart';
 import 'package:serba_jaya_mobile/features/auth/data/secure_session_repository.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/session_controller.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/sign_in_action.dart';
@@ -19,8 +21,15 @@ void bootstrap() {
       ProviderScope(
         overrides: [
           appConfigProvider.overrideWithValue(config),
-          requestGoogleIdTokenProvider.overrideWith(
-            (ref) => ref.watch(googleIdTokenProvider),
+          mapConfigurationProvider.overrideWithValue(
+            MapConfiguration(
+              androidKey: config.googleMapsAndroidApiKey,
+              iosKey: config.googleMapsIosApiKey,
+              showSetupHint: config.environment == AppEnvironment.dev,
+            ),
+          ),
+          requestGoogleIdentityProvider.overrideWith(
+            (ref) => ref.watch(googleIdentityProvider),
           ),
           sessionRepositoryProvider.overrideWith(
             (ref) => SecureSessionRepository(ref.watch(secureStoreProvider)),
@@ -32,6 +41,7 @@ void bootstrap() {
   } on FormatException {
     runApp(
       MaterialApp(
+        scrollBehavior: const AppScrollBehavior(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.light,

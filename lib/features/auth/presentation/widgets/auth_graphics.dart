@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 abstract final class AuthAssets {
-  static const logo = 'assets/auth/logo.png';
-  static const alert = 'assets/auth/login_alert.png';
-  static const apple = 'assets/auth/apple.svg';
-  static const google = 'assets/auth/google.png';
-  static const close = 'assets/auth/close.svg';
-  static const divider = 'assets/auth/divider.svg';
-  static const back = 'assets/auth/back.svg';
-  static const photo = 'assets/auth/photo.svg';
-  static const flag = 'assets/auth/flag_id.svg';
-  static const connected = 'assets/auth/connected.svg';
-  static const calendar = 'assets/auth/calendar.svg';
-  static const dropdown = 'assets/auth/dropdown.svg';
-  static const checked = 'assets/auth/checked.svg';
+  static const logo = 'assets/auth/logo.webp';
+  static const alert = 'assets/auth/login_alert.webp';
+  static const apple = 'assets/auth/apple.webp';
+  static const google = 'assets/auth/google.webp';
+  static const close = 'assets/auth/close.webp';
+  static const divider = 'assets/auth/divider.webp';
+  static const back = 'assets/auth/back.webp';
+  static const photo = 'assets/auth/photo.webp';
+  static const flag = 'assets/auth/flag_id.webp';
+  static const connected = 'assets/auth/connected.webp';
+  static const calendar = 'assets/auth/calendar.webp';
+  static const dropdown = 'assets/auth/dropdown.webp';
+  static const checked = 'assets/auth/checked.webp';
 }
 
 class AuthIcon extends StatelessWidget {
@@ -27,7 +26,7 @@ class AuthIcon extends StatelessWidget {
   Widget build(BuildContext context) => SizedBox.square(
     dimension: size,
     child: Center(
-      child: SvgPicture.asset(
+      child: Image.asset(
         asset,
         width: switch (asset) {
           AuthAssets.apple => 19.9987,

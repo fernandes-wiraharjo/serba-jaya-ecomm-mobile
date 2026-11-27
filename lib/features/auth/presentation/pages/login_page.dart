@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:serba_jaya_mobile/app/theme/app_theme.dart';
 import 'package:serba_jaya_mobile/core/errors/app_failure.dart';
+import 'package:serba_jaya_mobile/features/auth/domain/google_identity.dart';
 import 'package:serba_jaya_mobile/features/auth/domain/sign_in_failure.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/sign_in_action.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/widgets/auth_action_button.dart';
@@ -11,10 +11,16 @@ import 'package:serba_jaya_mobile/features/auth/presentation/widgets/auth_graphi
 import 'package:serba_jaya_mobile/l10n/generated/app_localizations.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key, required this.onClose, required this.onRegister});
+  const LoginPage({
+    super.key,
+    required this.onClose,
+    required this.onRegister,
+    this.onGoogleSuccess,
+  });
 
   final VoidCallback onClose;
   final VoidCallback onRegister;
+  final ValueChanged<GoogleIdentity>? onGoogleSuccess;
 
   @override
   ConsumerState<LoginPage> createState() => _LoginPageState();
@@ -33,7 +39,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       _notice = null;
     });
     try {
-      await action(method);
+      final identity = await action(method);
+      if (mounted && identity != null && method == AuthSignInMethod.google) {
+        widget.onGoogleSuccess?.call(identity);
+      }
     } on Exception catch (error) {
       final notice = switch (error) {
         SignInUnavailable.provider => strings.authProviderUnavailable,
@@ -134,7 +143,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         width: double.infinity,
         child: FittedBox(
           fit: BoxFit.fill,
-          child: SvgPicture.asset(
+          child: Image.asset(
             AuthAssets.divider,
             width: 346,
             height: 1,

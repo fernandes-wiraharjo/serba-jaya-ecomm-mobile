@@ -5,7 +5,7 @@ enum AppDestination {
   cart('/cart', protected: true),
   chat('/chat'),
   orders('/orders', protected: true),
-  profile('/profile', protected: true),
+  profile('/profile'),
   notifications('/notifications', protected: true);
 
   const AppDestination(this.path, {this.protected = false});

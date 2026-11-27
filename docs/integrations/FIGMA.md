@@ -2,6 +2,10 @@
 
 Panduan permanen agent ada di [`AGENTS.md`](../../AGENTS.md). Untuk implementasi UI Flutter, gunakan Figma Console MCP (`figma-console`) dan Desktop Bridge secara baca saja; MCP resmi `figma` dan REST tidak dipakai pada pekerjaan ini.
 
+## Ekspor ikon Navbar dan Header — 27 November 2026
+
+Desktop Bridge sempat melaporkan tidak ada file aktif. Setelah plugin tersambung lagi, probe WebSocket berhasil dalam 18 ms dan file aktif cocok. Kelima varian navbar serta lima Header dalam tabel di bawah dibaca ulang melalui Plugin API. Layer artwork diekspor pada 4×. Ikon keranjang dan notifikasi dipisahkan dari lingkaran dan angka badge contoh. Lihat [daftar navbar](../components/BOTTOM_NAVIGATION_BAR.md) dan [daftar Header](../components/HEADER.md) untuk aset WebP yang digunakan aplikasi. Rujukan crop pada catatan lama di bawah menjelaskan implementasi sebelum migrasi ini.
+
 ## Pemeriksaan koneksi — 25 November 2026
 
 | Pemeriksaan | Hasil aktual |

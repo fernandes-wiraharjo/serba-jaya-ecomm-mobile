@@ -1,6 +1,6 @@
 # Google OAuth 2.0 dan OpenID Connect
 
-Aplikasi menggunakan plugin resmi `google_sign_in` 7.2.0 untuk membuka pemilih akun Google dan memperoleh ID token. Inisialisasi SDK dilakukan saat tombol Google pertama kali digunakan dan konfigurasi lolos pemeriksaan. Integrasi memakai registrasi langsung di Google Cloud dan tidak menggunakan Firebase Authentication. [Panduan plugin Flutter](https://pub.dev/packages/google_sign_in/versions/7.2.0)
+Aplikasi menggunakan plugin resmi `google_sign_in` 7.2.0 untuk membuka pemilih akun Google dan memperoleh ID token. Service mengembalikan `GoogleIdentity` berisi token sementara serta `GoogleRegistrationData` (Google User ID, nama, email, dan URL foto) untuk pemetaan ke formulir registrasi. Inisialisasi SDK dilakukan saat tombol Google pertama kali digunakan dan konfigurasi lolos pemeriksaan. Integrasi memakai registrasi langsung di Google Cloud dan tidak menggunakan Firebase Authentication. [Panduan plugin Flutter](https://pub.dev/packages/google_sign_in/versions/7.2.0)
 
 ## Menyiapkan DEV
 
@@ -13,6 +13,6 @@ Di Android, SDK dapat melaporkan konfigurasi native yang salah sebagai pembatala
 
 ## Batas integrasi backend
 
-Google ID token hanya diteruskan selama permintaan aktif melalui `ExchangeGoogleIdentity`. Implementasi HTTP menunggu base URL HTTPS, endpoint, dan kontrak backend. Backend harus memvalidasi signature, issuer, audience, expiry dan, bila digunakan, nonce sesuai kontrak sebelum menentukan registrasi atau menerbitkan sesi aplikasi. Sampai backend tersedia, pemilihan akun tidak membuka rute terlindungi. [Verifikasi token Google](https://developers.google.com/identity/gsi/web/guides/verify-google-id-token) · [Arsitektur autentikasi](AUTHENTICATION.md)
+Google ID token hanya diteruskan selama permintaan aktif melalui `ExchangeGoogleIdentity`; data registrasi bertipe belum dikirim ke backend atau digunakan untuk membuat sesi. Implementasi HTTP menunggu base URL HTTPS, endpoint, dan kontrak backend. Backend harus memvalidasi signature, issuer, audience, expiry dan, bila digunakan, nonce sesuai kontrak sebelum menentukan registrasi atau menerbitkan sesi aplikasi. Sampai backend tersedia, pemilihan akun tidak membuka rute terlindungi. [Verifikasi token Google](https://developers.google.com/identity/gsi/web/guides/verify-google-id-token) · [Arsitektur autentikasi](AUTHENTICATION.md)
 
 Gunakan klien terpisah per environment. Simpan client secret, service account, dan private key hanya di backend atau secret manager. Jangan menyimpan ID token di aplikasi atau mencatat token dalam log dan pesan error. Data registrasi serta hal yang perlu dikonfirmasi ada di [data pendaftaran GCP](GCP_OAUTH_REGISTRATION.md).

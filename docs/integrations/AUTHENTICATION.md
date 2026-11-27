@@ -10,7 +10,7 @@
 
 1. Tombol Google memanggil `signInActionProvider`. Login menampilkan indikator tunggu serta menonaktifkan aksi provider selama proses berlangsung. Provider berbagi satu permintaan Google jika dipanggil bersamaan.
 2. `GoogleIdentitySource` memakai konfigurasi dari bootstrap dan membuka pemilih akun melalui SDK. Pembatalan mengembalikan tampilan ke keadaan siap. Konfigurasi, koneksi, dan kegagalan lain ditampilkan melalui pesan lokal tanpa payload error SDK.
-3. ID token diteruskan ke kontrak domain `ExchangeGoogleIdentity` jika implementasinya tersedia. Saat ini exchange belum dipasang. Pengguna menerima pemberitahuan dan tetap menjadi tamu. Alur ini belum menulis ke `SessionRepository` atau mengaktifkan sesi melalui `SessionController`.
+3. Hasil pemilih akun tersedia sebagai `GoogleIdentity`, dengan `GoogleRegistrationData` bertipe untuk pemetaan profil registrasi. Pada DEV, hasil tersebut ditampilkan sekali pada `GoogleAccountPreviewPage`; data tidak diambil ulang. Claims dari ID token lokal ditandai belum diverifikasi backend dan token mentah tidak ditampilkan. Preview DEV tidak menulis ke `SessionRepository` atau mengaktifkan sesi melalui `SessionController`.
 4. Setelah kontrak ditetapkan, implementasi backend akan menukar ID token melalui HTTPS, lalu memakai hasil tervalidasi untuk mengarahkan pengguna baru ke registrasi atau menyimpan sesi aplikasi pengguna terdaftar melalui repositori yang sama.
 5. Setelah sesi aplikasi aktif, GoRouter dapat membuka tujuan yang diizinkan dan Dio menggunakan token akses aplikasi untuk request terlindungi. Backend memeriksa otorisasi setiap operasi.
 

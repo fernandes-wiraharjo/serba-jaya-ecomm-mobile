@@ -148,26 +148,24 @@ void main() {
   ) async {
     final container = await _mount(tester);
     final router = container.read(appRouterProvider);
-    await tester.tap(find.text('Profil'));
+    await tester.tap(find.text('Pesanan'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'Masuk'));
     await tester.pumpAndSettle();
     expect(router.state.uri.path, '/login');
-    expect(router.state.uri.queryParameters['from'], '/profile');
+    expect(router.state.uri.queryParameters['from'], '/orders');
 
     await container.read(sessionRepositoryProvider).write(_testSession());
     container.invalidate(sessionProvider);
     await tester.pumpAndSettle();
-    expect(router.state.uri.path, '/profile');
+    expect(router.state.uri.path, '/orders');
     expect(find.byType(LoginPage), findsNothing);
-    expect(find.text('Keluar'), findsOneWidget);
 
     await tester.tap(find.text('Chat'));
     await tester.pumpAndSettle();
     await container.read(sessionProvider.notifier).logout();
     await tester.pumpAndSettle();
-    expect(find.text('Keluar', skipOffstage: false), findsNothing);
-    await tester.tap(find.text('Profil'));
+    await tester.tap(find.text('Pesanan'));
     await tester.pumpAndSettle();
     expect(find.byType(LoginRequiredDialog), findsOneWidget);
   });

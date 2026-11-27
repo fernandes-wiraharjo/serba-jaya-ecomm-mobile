@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:serba_jaya_mobile/app/theme/app_theme.dart';
 import 'package:serba_jaya_mobile/shared/widgets/navigation/navigation_badge.dart';
 
@@ -11,7 +10,6 @@ class HeaderActionButton extends StatelessWidget {
     required this.width,
     required this.height,
     required this.surfaceColor,
-    this.isVectorAsset = false,
     this.assetBounds,
     this.onPressed,
     this.badgeCount,
@@ -25,7 +23,6 @@ class HeaderActionButton extends StatelessWidget {
   final double width;
   final double height;
   final Color surfaceColor;
-  final bool isVectorAsset;
   final Rect? assetBounds;
   final VoidCallback? onPressed;
   final int? badgeCount;
@@ -53,13 +50,11 @@ class HeaderActionButton extends StatelessWidget {
               children: [
                 Positioned.fromRect(
                   rect: assetBounds ?? (Offset.zero & Size(width, height)),
-                  child: isVectorAsset
-                      ? SvgPicture.asset(assetPath, fit: BoxFit.fill)
-                      : Image.asset(
-                          assetPath,
-                          fit: BoxFit.fill,
-                          filterQuality: FilterQuality.high,
-                        ),
+                  child: Image.asset(
+                    assetPath,
+                    fit: BoxFit.fill,
+                    filterQuality: FilterQuality.high,
+                  ),
                 ),
                 if (badgeOffset case final offset?
                     when (badgeCount ?? 0) > 0 || maskEmbeddedBadgeWhenZero)

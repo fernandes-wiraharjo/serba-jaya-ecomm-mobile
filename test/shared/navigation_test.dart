@@ -90,7 +90,7 @@ void main() {
       final branding = tester.widget<Image>(brandingFinder);
       expect(
         (branding.image as AssetImage).assetName,
-        'assets/navigation/chat-branding-icon.png',
+        AppAssets.navigationChatBranding,
       );
       expect(branding.fit, BoxFit.contain);
       expect(branding.width, AppNavigationSize.chatBrandingIcon);

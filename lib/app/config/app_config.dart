@@ -19,8 +19,11 @@ class AppConfig {
     required this.displayName,
     this.apiBaseUrl,
     this.debugLogging = false,
+    this.googleAndroidClientId,
     this.googleServerClientId,
     this.googleIosClientId,
+    this.googleMapsAndroidApiKey,
+    this.googleMapsIosApiKey,
   });
 
   factory AppConfig.fromDefines() => AppConfig.parse(
@@ -28,10 +31,19 @@ class AppConfig {
     nativeFlavor: appFlavor ?? '',
     displayName: const String.fromEnvironment('APP_DISPLAY_NAME'),
     apiBaseUrl: const String.fromEnvironment('API_BASE_URL'),
+    googleAndroidClientId: const String.fromEnvironment(
+      'GOOGLE_ANDROID_CLIENT_ID',
+    ),
     googleServerClientId: const String.fromEnvironment(
       'GOOGLE_SERVER_CLIENT_ID',
     ),
     googleIosClientId: const String.fromEnvironment('GOOGLE_IOS_CLIENT_ID'),
+    googleMapsAndroidApiKey: const String.fromEnvironment(
+      'GOOGLE_MAPS_ANDROID_API_KEY',
+    ),
+    googleMapsIosApiKey: const String.fromEnvironment(
+      'GOOGLE_MAPS_IOS_API_KEY',
+    ),
     debugLogging: const String.fromEnvironment(
       'ENABLE_DEBUG_LOGGING',
       defaultValue: 'false',
@@ -44,8 +56,11 @@ class AppConfig {
     String displayName = '',
     String apiBaseUrl = '',
     String debugLogging = 'false',
+    String googleAndroidClientId = '',
     String googleServerClientId = '',
     String googleIosClientId = '',
+    String googleMapsAndroidApiKey = '',
+    String googleMapsIosApiKey = '',
   }) {
     final env = AppEnvironment.values.asNameMap()[environment];
     if (env == null) throw const FormatException('APP_ENV');
@@ -79,8 +94,11 @@ class AppConfig {
         path: uri.path.endsWith('/') ? uri.path : '${uri.path}/',
       ),
       debugLogging: env != AppEnvironment.prod && debugLogging == 'true',
+      googleAndroidClientId: _optionalDefine(googleAndroidClientId),
       googleServerClientId: _optionalDefine(googleServerClientId),
       googleIosClientId: _optionalDefine(googleIosClientId),
+      googleMapsAndroidApiKey: _mapsKey(googleMapsAndroidApiKey),
+      googleMapsIosApiKey: _mapsKey(googleMapsIosApiKey),
     );
   }
 
@@ -88,13 +106,22 @@ class AppConfig {
   final String displayName;
   final Uri? apiBaseUrl;
   final bool debugLogging;
+  final String? googleAndroidClientId;
   final String? googleServerClientId;
   final String? googleIosClientId;
+  final String? googleMapsAndroidApiKey;
+  final String? googleMapsIosApiKey;
 }
 
 String? _optionalDefine(String value) {
   final trimmed = value.trim();
   return trimmed.isEmpty ? null : trimmed;
+}
+
+// A missing or invalid Maps key only disables the map for that platform.
+String? _mapsKey(String value) {
+  final key = value.trim();
+  return RegExp(r'^AIza[A-Za-z0-9_-]{35}$').hasMatch(key) ? key : null;
 }
 
 final appConfigProvider = Provider<AppConfig>((ref) {

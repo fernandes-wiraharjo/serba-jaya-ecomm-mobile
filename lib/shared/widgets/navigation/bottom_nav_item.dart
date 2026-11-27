@@ -113,11 +113,13 @@ class BottomNavItem extends StatelessWidget {
               filterQuality: FilterQuality.high,
             ),
           ),
-          if (useWideIcon)
+          if (useWideIcon && badgeCount > 0)
             Positioned(
-              top: badgeCount > 0 ? 0 : -1,
-              left: badgeCount > 0 ? 15 : 14,
-              child: _badgeOverlay,
+              top: 0,
+              left: 15,
+              child: ExcludeSemantics(
+                child: NavigationBadge(count: badgeCount),
+              ),
             )
           else if (badgeCount > 0)
             Positioned(
@@ -129,21 +131,6 @@ class BottomNavItem extends StatelessWidget {
             ),
         ],
       ),
-    );
-  }
-
-  Widget get _badgeOverlay {
-    final hasCount = badgeCount > 0;
-    return SizedBox.square(
-      dimension: AppNavigationSize.badge + (hasCount ? 0 : 2),
-      child: hasCount
-          ? ExcludeSemantics(child: NavigationBadge(count: badgeCount))
-          : const DecoratedBox(
-              decoration: BoxDecoration(
-                color: AppColors.navigationSurface,
-                shape: BoxShape.circle,
-              ),
-            ),
     );
   }
 

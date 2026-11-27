@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:serba_jaya_mobile/app/config/app_config.dart';
+import 'package:serba_jaya_mobile/core/location/app_location_picker.dart';
+import 'package:serba_jaya_mobile/core/location/location_models.dart';
 import 'package:serba_jaya_mobile/app/router/app_destination.dart';
 import 'package:serba_jaya_mobile/app/router/auth_routes.dart';
 import 'package:serba_jaya_mobile/app/shell/main_shell.dart';
@@ -12,6 +14,10 @@ import 'package:serba_jaya_mobile/features/auth/presentation/pages/auth_onboardi
 import 'package:serba_jaya_mobile/features/auth/presentation/session_controller.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/widgets/login_required_dialog.dart';
 import 'package:serba_jaya_mobile/features/home/presentation/home_placeholder.dart';
+import 'package:serba_jaya_mobile/features/profile/presentation/profile_page.dart';
+import 'package:serba_jaya_mobile/features/profile/presentation/profile_address_page.dart';
+import 'package:serba_jaya_mobile/features/profile/presentation/profile_edit_page.dart';
+import 'package:serba_jaya_mobile/features/profile/presentation/profile_secondary_pages.dart';
 import 'package:serba_jaya_mobile/l10n/generated/app_localizations.dart';
 import 'package:serba_jaya_mobile/shared/motion/app_page_transitions.dart';
 import 'package:serba_jaya_mobile/shared/motion/app_tab_transition.dart';
@@ -49,7 +55,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           child: const AuthOnboardingPage(),
         ),
       ),
-      ...authenticationRoutes(rootNavigatorKey),
+      ...authenticationRoutes(rootNavigatorKey, isDevelopment: isDevelopment),
       _mainShellRoute(requests, isDevelopment),
     ],
   );
@@ -106,7 +112,9 @@ StatefulShellRoute _mainShellRoute(
               ? AppColors.headerHomeSurface
               : AppColors.headerSurface,
           headerBuilder: (context, destination, badgeCounts) {
-            if (destination == null) return null;
+            if (destination == null || destination == AppDestination.profile) {
+              return null;
+            }
             if (destination == AppDestination.home) {
               return HeaderMobileActions(
                 cartCount: badgeCounts[AppDestination.cart] ?? 0,
@@ -140,6 +148,8 @@ StatefulShellRoute _mainShellRoute(
             pageBuilder: (_, state) =>
                 _destinationPage(state, destination, requests, isDevelopment),
             routes: [
+              if (destination == AppDestination.profile)
+                ..._profileRoutes(requests._root),
               if (destination == AppDestination.home)
                 GoRoute(
                   path: 'notifications',
@@ -157,6 +167,83 @@ StatefulShellRoute _mainShellRoute(
   ],
 );
 
+List<RouteBase> _profileRoutes(GlobalKey<NavigatorState> root) => [
+  _profileRoute(root, 'edit', 'profile-edit', (_) => const ProfileEditPage()),
+  _profileRoute(
+    root,
+    'addresses',
+    'profile-addresses',
+    (_) => const ProfileAddressPage(),
+    routes: [
+      _profileRoute(root, 'location', 'profile-address-location', (state) {
+        final selection = state.extra;
+        return AppLocationPicker(
+          initial: selection is LocationAddress ? selection : null,
+        );
+      }),
+      _profileRoute(
+        root,
+        'new',
+        'profile-address-new',
+        (_) => const ProfileAddressForm(),
+      ),
+      _profileRoute(
+        root,
+        ':id/edit',
+        'profile-address-edit',
+        (state) => ProfileAddressForm(
+          addressId: int.tryParse(state.pathParameters['id']!) ?? -1,
+        ),
+      ),
+    ],
+  ),
+  _profileRoute(
+    root,
+    'rewards',
+    'profile-rewards',
+    (_) => const ProfileRewardsPage(view: ProfileRewardsView.points),
+  ),
+  _profileRoute(
+    root,
+    'vouchers',
+    'profile-vouchers',
+    (_) => const ProfileRewardsPage(view: ProfileRewardsView.vouchers),
+  ),
+  _profileRoute(
+    root,
+    'points-history',
+    'profile-points-history',
+    (_) => const ProfileRewardsPage(view: ProfileRewardsView.history),
+  ),
+  _profileRoute(
+    root,
+    'membership',
+    'profile-membership',
+    (_) => const ProfileMembershipPage(),
+  ),
+  _profileRoute(
+    root,
+    'delete',
+    'profile-delete',
+    (_) => const ProfileDeletePage(),
+  ),
+];
+
+GoRoute _profileRoute(
+  GlobalKey<NavigatorState> root,
+  String path,
+  String name,
+  Widget Function(GoRouterState) build, {
+  List<RouteBase> routes = const [],
+}) => GoRoute(
+  path: path,
+  name: name,
+  parentNavigatorKey: root,
+  routes: routes,
+  pageBuilder: (_, state) =>
+      AppTransitionPage<void>(key: state.pageKey, child: build(state)),
+);
+
 Page<void> _destinationPage(
   GoRouterState state,
   AppDestination destination,
@@ -169,6 +256,7 @@ Page<void> _destinationPage(
       if (destination.protected && !_ShellSessionAccess.isAllowed(context)) {
         return const SizedBox.expand();
       }
+      if (destination == AppDestination.profile) return const ProfilePage();
       return isDevelopment
           ? _placeholder(
               context,
@@ -301,20 +389,6 @@ Widget _placeholder(
       onNotificationsRequested: onNotificationsRequested,
     ),
     AppDestination.chat => FeedbackPanel(message: strings.chatPlaceholder),
-    AppDestination.profile => Consumer(
-      builder: (context, ref, _) => SafeArea(
-        child: Center(
-          child: TextButton(
-            onPressed: () {
-              final controller = ref.read(sessionProvider.notifier);
-              context.go(AppDestination.home.path);
-              controller.logout();
-            },
-            child: Text(strings.logout),
-          ),
-        ),
-      ),
-    ),
     _ => FeedbackPanel(message: strings.placeholder),
   };
 }

@@ -8,6 +8,7 @@ class AuthActionButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.filled = true,
+    this.filledColor = AppColors.authPrimary,
     this.radius = AppRadius.authField,
     this.outline = AppColors.authSubtleOutline,
     this.trailing,
@@ -17,6 +18,7 @@ class AuthActionButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
   final bool filled;
+  final Color filledColor;
   final double radius;
   final Color outline;
   final Widget? trailing;
@@ -53,7 +55,6 @@ class AuthActionButton extends StatelessWidget {
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(radius),
     );
-    final activeColor = AppColors.authPrimary;
     return SizedBox(
       width: double.infinity,
       child: AppPressFeedback(
@@ -63,9 +64,9 @@ class AuthActionButton extends StatelessWidget {
                 onPressed: onPressed,
                 style: FilledButton.styleFrom(
                   foregroundColor: foreground,
-                  backgroundColor: activeColor,
+                  backgroundColor: filledColor,
                   disabledForegroundColor: Colors.white,
-                  disabledBackgroundColor: activeColor.withValues(alpha: .65),
+                  disabledBackgroundColor: filledColor.withValues(alpha: .65),
                   minimumSize: const Size(0, 40),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,

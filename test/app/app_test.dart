@@ -13,6 +13,7 @@ import 'package:serba_jaya_mobile/features/auth/presentation/widgets/login_requi
 import 'package:serba_jaya_mobile/l10n/generated/app_localizations.dart';
 import 'package:serba_jaya_mobile/shared/widgets/navigation/app_bottom_nav_bar.dart';
 import 'package:serba_jaya_mobile/features/auth/domain/app_session.dart';
+import 'package:serba_jaya_mobile/features/auth/domain/session_repository.dart';
 import 'package:serba_jaya_mobile/features/auth/domain/google_identity.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/pages/auth_onboarding_page.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/pages/registration_page.dart';
@@ -28,7 +29,8 @@ void main() {
     WidgetTester tester,
     FakeSessionRepository repository, {
     RequestSignIn? signIn,
-    RequestGoogleIdToken? requestGoogleIdToken,
+    SessionValidator? validateSession,
+    RequestGoogleIdentity? requestGoogleIdentity,
   }) async {
     final container = ProviderContainer(
       overrides: [
@@ -36,8 +38,10 @@ void main() {
           AppConfig.parse(environment: 'dev'),
         ),
         sessionRepositoryProvider.overrideWithValue(repository),
-        requestGoogleIdTokenProvider.overrideWith(
-          (ref) => requestGoogleIdToken ?? ref.watch(googleIdTokenProvider),
+        if (validateSession != null)
+          sessionValidatorProvider.overrideWithValue(validateSession),
+        requestGoogleIdentityProvider.overrideWith(
+          (ref) => requestGoogleIdentity ?? ref.watch(googleIdentityProvider),
         ),
         if (signIn != null) signInActionProvider.overrideWithValue(signIn),
       ],
@@ -112,7 +116,7 @@ void main() {
     await tester.pumpAndSettle();
     final router = container.read(appRouterProvider);
 
-    for (final path in ['/cart', '/orders', '/profile', '/notifications']) {
+    for (final path in ['/cart', '/orders', '/notifications']) {
       router.go(path);
       await tester.pumpAndSettle();
       expect(find.text('Kamu Harus Masuk'), findsNothing, reason: path);
@@ -122,6 +126,80 @@ void main() {
       expect(router.routeInformationProvider.value.uri.path, '/');
     }
   });
+
+  testWidgets('guest can open Profile and its subroutes without login', (
+    tester,
+  ) async {
+    final container = await mount(tester, FakeSessionRepository());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Profil'));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit profil'), findsOneWidget);
+    expect(find.byType(LoginRequiredDialog), findsNothing);
+    await tester.tap(find.text('Edit profil'));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit Profil'), findsOneWidget);
+
+    final router = container.read(appRouterProvider);
+    router.go('/profile/addresses/new');
+    await tester.pumpAndSettle();
+    expect(find.text('Tambah Alamat'), findsOneWidget);
+    expect(router.state.uri.path, '/profile/addresses/new');
+    expect(container.read(sessionProvider), isA<SessionGuest>());
+  });
+
+  testWidgets(
+    'Profile scrolls as one page and retains offset across tabs and routes',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 640));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await mount(tester, FakeSessionRepository());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Profil'));
+      await tester.pumpAndSettle();
+
+      final page = find.byKey(const PageStorageKey<String>('profile-content'));
+      final scrollable = find.descendant(
+        of: page,
+        matching: find.byType(Scrollable),
+      );
+      final position = tester.state<ScrollableState>(scrollable).position;
+      final navbar = find.byType(AppBottomNavBar);
+      final navbarRect = tester.getRect(navbar);
+
+      expect(scrollable, findsOneWidget);
+      expect(position.physics, isA<BouncingScrollPhysics>());
+      expect(position.pixels, 0);
+      await tester.drag(page, const Offset(0, -380));
+      await tester.pumpAndSettle();
+      final scrolledOffset = position.pixels;
+      expect(scrolledOffset, greaterThan(100));
+      expect(tester.getRect(navbar), navbarRect);
+
+      await tester.tap(find.text('Chat'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Profil'));
+      await tester.pumpAndSettle();
+      expect(
+        tester.state<ScrollableState>(scrollable).position.pixels,
+        closeTo(scrolledOffset, 0.01),
+      );
+
+      final address = find.text('Alamat saya');
+      await tester.ensureVisible(address);
+      await tester.pumpAndSettle();
+      final beforeOpening = position.pixels;
+      await tester.tap(address);
+      await tester.pumpAndSettle();
+      expect(find.text('Alamat Saya'), findsOneWidget);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(
+        tester.state<ScrollableState>(scrollable).position.pixels,
+        closeTo(beforeOpening, 0.01),
+      );
+    },
+  );
 
   testWidgets(
     'home Header keeps protected cart and notification actions guarded',
@@ -156,7 +234,7 @@ void main() {
       await tester.pumpAndSettle();
       final router = container.read(appRouterProvider);
 
-      for (final label in ['Keranjang', 'Pesanan', 'Profil']) {
+      for (final label in ['Keranjang', 'Pesanan']) {
         await tester.tap(find.text(label));
         await tester.pumpAndSettle();
         expect(find.byType(LoginRequiredDialog), findsOneWidget, reason: label);
@@ -331,7 +409,7 @@ void main() {
   testWidgets(
     'provider handoff blocks duplicate actions and reports errors without granting access',
     (tester) async {
-      final pending = Completer<void>();
+      final pending = Completer<GoogleIdentity?>();
       final methods = <AuthSignInMethod>[];
       final container = await mount(
         tester,
@@ -363,14 +441,22 @@ void main() {
     },
   );
 
-  testWidgets('Google identity without a backend leaves the user a guest', (
+  testWidgets('Google identity opens the dev preview and remains a guest', (
     tester,
   ) async {
     final repository = FakeSessionRepository();
     final container = await mount(
       tester,
       repository,
-      requestGoogleIdToken: () async => 'id-token-fixture',
+      requestGoogleIdentity: () async => const GoogleIdentity(
+        registrationData: GoogleRegistrationData(
+          googleUserId: 'google-user-fixture',
+          displayName: 'Google User',
+          email: 'google@example.test',
+          photoUrl: null,
+        ),
+        idToken: 'id-token-fixture',
+      ),
     );
     final router = container.read(appRouterProvider);
     router.go('/login?from=/cart');
@@ -381,23 +467,80 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(
-      find.text(
-        'Akun Google telah dipilih. Layanan masuk Serba Jaya belum tersedia.',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('Google Account Preview'), findsOneWidget);
+    expect(find.text('google-user-fixture'), findsOneWidget);
+    expect(find.text('Google User'), findsOneWidget);
+    expect(find.text('google@example.test'), findsOneWidget);
     expect(container.read(sessionProvider), isA<SessionGuest>());
     expect(await repository.read(), isNull);
-    expect(
-      router.routeInformationProvider.value.uri.toString(),
-      '/login?from=/cart',
-    );
+    expect(find.text('Google Account Preview'), findsOneWidget);
 
     router.go('/cart');
     await tester.pumpAndSettle();
     expect(router.routeInformationProvider.value.uri.path, '/');
   });
+
+  testWidgets(
+    'authenticated Profile can edit a local name and cancel or confirm logout',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final repository = FakeSessionRepository()
+        ..session = AppSession(
+          accessToken: 'test-session',
+          expiresAt: DateTime.now().add(const Duration(hours: 1)),
+        );
+      final container = await mount(
+        tester,
+        repository,
+        validateSession: (_) async => true,
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Profil'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit profil'));
+      await tester.pumpAndSettle();
+
+      final save = find.text('Simpan perubahan');
+      await tester.ensureVisible(save);
+      await tester.pumpAndSettle();
+      await tester.tap(save);
+      await tester.pumpAndSettle();
+      expect(find.text('Isi nama lengkap.'), findsOneWidget);
+
+      final name = find.descendant(
+        of: find.byKey(const ValueKey('profile-name')),
+        matching: find.byType(TextFormField),
+      );
+      await tester.ensureVisible(name);
+      await tester.pumpAndSettle();
+      await tester.enterText(name, 'Pelanggan Uji');
+      await tester.ensureVisible(save);
+      await tester.pumpAndSettle();
+      await tester.tap(save);
+      await tester.pumpAndSettle();
+      expect(find.text('Pelanggan Uji'), findsOneWidget);
+
+      final logout = find.text('Keluar dari akun');
+      await tester.scrollUntilVisible(logout, 180);
+      await tester.ensureVisible(logout);
+      await tester.pumpAndSettle();
+      await tester.tap(logout);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Batal'));
+      await tester.pumpAndSettle();
+      expect(repository.clearCount, 0);
+
+      await tester.tap(logout);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ya, keluar'));
+      await tester.pumpAndSettle();
+      expect(repository.clearCount, 1);
+      expect(container.read(sessionProvider), isA<SessionGuest>());
+      expect(container.read(appRouterProvider).state.uri.path, '/');
+    },
+  );
 
   test('expired credentials cannot open a protected route or resume it', () {
     final now = DateTime.utc(2026, 1);

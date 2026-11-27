@@ -1,4 +1,5 @@
 import Flutter
+import GoogleMaps
 import UIKit
 
 @main
@@ -12,6 +13,21 @@ import UIKit
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    let mapsChannel = FlutterMethodChannel(
+      name: "id.serbajaya.ecommerce/maps_config",
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    )
+    mapsChannel.setMethodCallHandler { call, result in
+      guard call.method == "initialize" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      guard let key = call.arguments as? String, !key.isEmpty else {
+        result(false)
+        return
+      }
+      result(GMSServices.provideAPIKey(key))
+    }
     let channel = FlutterMethodChannel(
       name: "id.serbajaya.ecommerce/google_sign_in_config",
       binaryMessenger: engineBridge.applicationRegistrar.messenger()

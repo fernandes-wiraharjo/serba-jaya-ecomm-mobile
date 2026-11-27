@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:serba_jaya_mobile/app/theme/app_assets.dart';
 import 'package:serba_jaya_mobile/app/theme/app_theme.dart';
 import 'package:serba_jaya_mobile/shared/widgets/header/app_header.dart';
@@ -29,7 +28,17 @@ void main() {
 
     expect(find.byType(HeaderMobile), findsOneWidget);
     expect(find.byType(HeaderMobileActions), findsOneWidget);
-    expect(find.byType(SvgPicture), findsNWidgets(2));
+    for (final asset in [AppAssets.headerCart, AppAssets.headerNotification]) {
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Image &&
+              widget.image is AssetImage &&
+              (widget.image as AssetImage).assetName == asset,
+        ),
+        findsOneWidget,
+      );
+    }
     expect(
       find.byWidgetPredicate(
         (widget) =>

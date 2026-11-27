@@ -8,7 +8,7 @@ flutter build ios --no-codesign --flavor dev --dart-define-from-file=config/dev.
 | Platform | Konfigurasi |
 |---|---|
 | Android | ID resmi tiap flavor tercantum di [environment](ENVIRONMENT.md). Namespace dasar `id.serbajaya.ecommerce`. Wrapper Gradle 8.14, AGP 8.11.1, Kotlin plugin 2.2.20, target Java/Kotlin 17, minSdk 24 dan compile/target SDK 36 dari Flutter. Manifest memakai nama flavor dan menonaktifkan backup aplikasi. Ketiga varian debug memakai debug keystore lokal. Signing release **NOT CONFIGURED**. SHA-1/SHA-256 dan masa berlaku sertifikat debug terdapat di [data OAuth](../integrations/GCP_OAUTH_REGISTRATION.md). |
-| iOS | Scheme `dev`, `staging`, `prod` memakai sembilan konfigurasi `Debug`, `Profile`, dan `Release`. Bundle ID dan display name telah diverifikasi. Target minimum iOS 13.0. CocoaPods mempunyai konfigurasi untuk semua environment. Team ID dan provisioning profile **NOT CONFIGURED**. |
+| iOS | Scheme `dev`, `staging`, `prod` memakai sembilan konfigurasi `Debug`, `Profile`, dan `Release`. Bundle ID dan display name telah diverifikasi. Target minimum iOS 14.0 untuk Google Maps Flutter 2.18.0. CocoaPods mempunyai konfigurasi untuk semua environment. Team ID dan provisioning profile **NOT CONFIGURED**. |
 
 ## Kompatibilitas Android dan insiden wrapper (25 November 2026)
 

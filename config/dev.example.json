@@ -2,7 +2,10 @@
   "APP_ENV": "dev",
   "APP_DISPLAY_NAME": "Serba Jaya DEV",
   "API_BASE_URL": "",
-  "GOOGLE_SERVER_CLIENT_ID": "",
+  "GOOGLE_SERVER_CLIENT_ID": "983806022836-a7k5cd9nn7nbjo1fli6rk85ui5pqkpim.apps.googleusercontent.com",
   "GOOGLE_IOS_CLIENT_ID": "",
-  "ENABLE_DEBUG_LOGGING": "true"
+  "ENABLE_DEBUG_LOGGING": "true",
+  "GOOGLE_ANDROID_CLIENT_ID": "983806022836-rsjb9a1i13crdhkrd8de6p3r3gn3cmqv.apps.googleusercontent.com",
+  "GOOGLE_MAPS_ANDROID_API_KEY": "",
+  "GOOGLE_MAPS_IOS_API_KEY": ""
 }

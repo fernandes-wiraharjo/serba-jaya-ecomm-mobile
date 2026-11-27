@@ -1,5 +1,47 @@
 # Status proyek — Multi-environment dan persiapan OAuth
 
+## Pembaruan — Google Maps untuk alamat Profil (27 November 2026)
+
+Maps & Location Core, form Tambah/Ubah Alamat, picker, konfigurasi Android/iOS, environment key kosong, dan batas integrasi Places/backend sudah tersedia. Figma dibaca melalui Desktop Bridge pada node Profile `232:5159`, Alamat `232:5155`, Daftar `168:2696`, Tambah `439:1479`, Ubah `439:1705`, dan Picker `169:3014`. Referensi dan perbandingan DEV tanpa key dicatat di [panduan integrasi dan verifikasi Maps](integrations/GOOGLE_MAPS.md).
+
+- `flutter analyze --no-pub`: PASS. 31 tes unit/widget terkait: PASS. `git diff --check`: PASS.
+- Build `assembleDevDebug`, instalasi, peluncuran, debug attach, dan hot reload pada Samsung SM M325FV Android 13: PASS. Key kosong terverifikasi di manifest final; foreground coarse/fine tercantum, tanpa background location.
+- Tambah Alamat dan Pilih Lokasi dibuka serta diperiksa melalui screenshot perangkat dengan key kosong. UI fallback dan navigasi berfungsi. Screenshot: [form](verification/screenshots/address-add-dev-no-key-sm-m325fv.png) dan [picker](verification/screenshots/location-picker-dev-no-key-sm-m325fv.png).
+- Live map menunggu key Android/iOS yang dibatasi. Places dan Google Geocoding menunggu backend. Izin/GPS fisik belum dikonfirmasi sebelum perangkat terputus. iOS pod terpasang untuk target minimum 14, build perangkat iOS belum dijalankan. Data alamat saat ini hanya hidup di state lokal dan direset mengikuti sesi, belum tersimpan ke server atau storage persisten.
+
+
+## Pembaruan — Scroll global dan audit visual (27 November 2026)
+
+`AppScrollBehavior` berlaku dari root untuk halaman dan overlay. Profil menggulir sebagai satu halaman dengan navbar di shell. SM M325FV memverifikasi posisi scroll tetap setelah berpindah tab dan kembali dari subrute, serta field Tambah Alamat di atas keyboard. [Panduan scroll](architecture/MOTION.md)
+
+Figma Console membaca 52 frame dan komponen. Perbaikan menggunakan properti desain untuk Profil, form dan dialog turunannya, dan memakai aset autentikasi WebP. Perbandingan setelah revisi menunggu perangkat Android fisik tersambung kembali. [Audit visual dan screenshot referensi](verification/FIGMA_VISUAL_AUDIT.md)
+
+## Pembaruan — WebP untuk Navbar dan Header (27 November 2026)
+
+Sembilan aset navbar dan delapan aset Header kini memakai WebP lossless. Seluruh aset diekspor pada 4× dari layer asli Figma melalui Desktop Bridge. Jumlah badge tetap dirender oleh Flutter. Lihat [Navbar](components/BOTTOM_NAVIGATION_BAR.md) dan [Header](components/HEADER.md) untuk daftar aset dan batas referensi desain.
+
+Format Dart, analisis, `git diff --check`, dan 30 tes terkait lulus. Tes memeriksa kelima status navbar, varian Header, badge, pencarian, guard, dan signature WebP lossless dalam bundle. Build serta instalasi DEV berhasil pada Samsung SM M325FV (Android 13). Hot reload berhasil. Screenshot fisik [Beranda](verification/screenshots/webp-home-sm-m325fv.png), [Chat](verification/screenshots/webp-chat-sm-m325fv.png), dan [Profil](verification/screenshots/webp-profile-sm-m325fv.png) dibandingkan dengan referensi Figma untuk area navbar dan Header yang tampil. State aktif Keranjang dan Pesanan serta varian Header yang belum dipasang diperiksa melalui widget test.
+
+## Pembaruan — Modul Profil (27 November 2026)
+
+Node Profile `232:5159` berhasil dibaca melalui Desktop Bridge. Tab Profil dan halaman turunannya sementara terbuka untuk tamu. Logout tersedia saat ada sesi aktif. Poin, voucher, membership, dan hapus akun menunjukkan batas layanan yang belum tersedia. Lihat [pemetaan desain dan pekerjaan tersisa](features/PROFILE.md).
+
+## Pembaruan — Data akun Google bertipe (26 November 2026)
+
+Google Sign-In yang sudah dipakai halaman Login kini menghasilkan `GoogleIdentity` berisi ID token sementara dan `GoogleRegistrationData` berisi Google User ID, displayName, email, serta photoUrl. Permintaan ganda tetap digabung selama proses berlangsung; pembatalan dan error memakai kategori aman yang ada. Tanpa backend, token tidak menjadi sesi aplikasi dan guard tetap melindungi rute.
+
+- `flutter analyze --no-pub`: PASS. Tes terkait `google_identity_test.dart` dan `app_test.dart`: PASS, 17 tes.
+- DEV lokal memiliki `GOOGLE_SERVER_CLIENT_ID` dan file tetap diabaikan Git. Nilai credential tidak dicetak atau disalin. Pendaftaran Android untuk package DEV dan fingerprint debug tetap perlu dikonfirmasi di Google Cloud.
+- Konfigurasi OAuth iOS belum lengkap: `GOOGLE_IOS_CLIENT_ID` belum tersedia di config DEV dan `Info.plist` tidak memiliki URL callback scheme. Jangan uji login iOS sampai klien iOS dan scheme resmi disediakan.
+- Integrasi pertukaran backend/registrasi dan sesi tetap menunggu kontrak server. Detail alur serta kekurangan native ada di [panduan Google OAuth](integrations/GCP_OAUTH.md).
+
+## Pembaruan — Google Account Preview DEV (26 November 2026)
+
+Login DEV kini dapat meneruskan satu hasil Google Sign-In ke `GoogleAccountPreviewPage` melalui GoRouter tanpa autentikasi ulang. Halaman menampilkan profil, ketersediaan ID token, dan claims yang belum diverifikasi; tombol kembali, ganti akun, dan keluar tersedia. Preview hanya didaftarkan pada router DEV dan tidak mengubah sesi/guard.
+
+- Format dan `flutter analyze --no-pub`: PASS. Tes Google identity, layout auth, dan app: 24 PASS.
+- SM M325FV Android 13: build incremental, instalasi, debug attach, dan hot reload PASS. Pemilihan akun Google dan penerimaan data akun nyata belum dapat dikonfirmasi dari sesi ini; lakukan interaksi pada perangkat untuk menyelesaikan smoke test provider.
+
 ## Pembaruan — Transisi navigasi (25 November 2026)
 
 GoRouter memakai satu Navigator per tab melalui `StatefulShellRoute`. Isi tab berganti dengan fade, sementara Header dan Bottom Navigation Bar tetap di luar transisi tab. Login muncul dari bawah di atas layar asal, Registrasi dan Notifikasi memakai slide Cupertino, dan dialog autentikasi memakai barrier semitransparan. Rute terlindungi yang tersimpan tetap mengikuti status sesi. Lihat [sistem gerak](architecture/MOTION.md).

@@ -42,6 +42,14 @@ AppHero(
 
 Kedua ujung Hero memakai tag yang sama dalam Navigator yang sama. Sertakan bagian atau posisi sumber dalam tag jika satu produk muncul beberapa kali di halaman. Aplikasi saat ini belum punya pasangan thumbnail dan detail produk, sehingga belum memasang Hero pada halaman.
 
+## Scroll halaman
+
+`MaterialApp.router` memasang `AppScrollBehavior` dari core. Semua viewport biasa, termasuk formulir, dialog dan sheet, mewarisi `BouncingScrollPhysics` bawaan dengan momentum dan overscroll elastis. Indikator glow dan stretch Android dilepas. Pada viewport pendek tanpa ruang scroll, biarkan konten diam. Untuk `ListView` vertikal yang tidak perlu menjadi scrollable primer, tetapkan `primary: false` agar Flutter tidak menambahkan physics yang selalu menerima drag. Permukaan pull-to-refresh yang harus menerima drag saat isinya pendek dapat memakai `ScrollConfiguration(behavior: const AppScrollBehavior(alwaysScrollable: true), child: ...)`.
+
+Untuk form atau konten statis, gunakan satu viewport yang ukurannya mengikuti layar dan keyboard. Untuk daftar atau grid panjang gunakan builder. Gabungkan beberapa bagian kompleks lewat sliver, dan gunakan scroll horizontal bersumbu lain hanya jika konten memerlukannya. Jangan memanggil animasi per event scroll. Navigasi tab yang sudah ada mempertahankan viewport yang terpasang. Gunakan `PageStorageKey` stabil bila halaman perlu memulihkan posisi setelah viewport dibangun ulang.
+
+Di Profil, judul, identitas, membership, dan menu berada dalam satu viewport. Navbar tetap di shell. Header halaman turunan berada di luar viewport form. Form dapat digulir sampai aksi paling bawah. Keyboard ditutup saat drag pada halaman turunan Profil.
+
 ## Aksesibilitas dan performa
 
 - Hormati `MediaQuery.disableAnimations`. Hilangkan animasi pada pengurangan gerakan, termasuk Hero dan efek tekan. Pertahankan fokus, semantics, dan perilaku kembali.

@@ -28,6 +28,22 @@ void main() {
     }
   });
 
+  test('Maps keys are optional, validated independently and trimmed', () {
+    final key = 'AIza${'A' * 35}';
+    final config = AppConfig.parse(
+      environment: 'dev',
+      nativeFlavor: 'dev',
+      googleMapsAndroidApiKey: '  $key  ',
+      googleMapsIosApiKey: 'invalid.apps.googleusercontent.com',
+    );
+    expect(config.googleMapsAndroidApiKey, key);
+    expect(config.googleMapsIosApiKey, isNull);
+    expect(
+      AppConfig.parse(environment: 'prod').googleMapsAndroidApiKey,
+      isNull,
+    );
+  });
+
   test('production forces logging off and normalizes the base path', () {
     final config = AppConfig.parse(
       environment: 'prod',
@@ -101,12 +117,20 @@ void main() {
         debugLogging: data['ENABLE_DEBUG_LOGGING']!,
         googleServerClientId: data['GOOGLE_SERVER_CLIENT_ID']!,
         googleIosClientId: data['GOOGLE_IOS_CLIENT_ID']!,
+        googleMapsAndroidApiKey: data['GOOGLE_MAPS_ANDROID_API_KEY']!,
+        googleMapsIosApiKey: data['GOOGLE_MAPS_IOS_API_KEY']!,
       );
       expect(config.environment.name, env);
       expect(config.displayName, displayName);
       expect(config.apiBaseUrl, isNull);
-      expect(config.googleServerClientId, isNull);
+      final serverId = data['GOOGLE_SERVER_CLIENT_ID']!.trim();
+      expect(
+        config.googleServerClientId == (serverId.isEmpty ? null : serverId),
+        isTrue,
+      );
       expect(config.googleIosClientId, isNull);
+      expect(data['GOOGLE_MAPS_ANDROID_API_KEY'], isEmpty);
+      expect(data['GOOGLE_MAPS_IOS_API_KEY'], isEmpty);
       expect(config.debugLogging, env == 'dev');
     }
   });

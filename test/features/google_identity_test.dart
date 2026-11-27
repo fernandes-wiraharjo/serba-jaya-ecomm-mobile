@@ -4,9 +4,10 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in/google_sign_in.dart' hide GoogleIdentity;
 import 'package:serba_jaya_mobile/core/errors/app_failure.dart';
 import 'package:serba_jaya_mobile/features/auth/data/google_identity_source.dart';
+import 'package:serba_jaya_mobile/features/auth/domain/google_identity.dart';
 import 'package:serba_jaya_mobile/features/auth/domain/sign_in_failure.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/sign_in_action.dart';
 
@@ -41,20 +42,27 @@ void main() {
 
   test('Android uses the server client and initializes only once', () async {
     final identity = source(iosClientId: _iosId);
-    expect(await identity.requestIdToken(), 'id-token-fixture');
-    expect(await identity.requestIdToken(), 'id-token-fixture');
+    final result = await identity.requestIdentity();
+    expect(result.idToken, 'id-token-fixture');
+    expect(result.registrationData.googleUserId, 'google-user-fixture');
+    expect(result.registrationData.displayName, 'Google User');
+    expect(result.registrationData.email, 'google@example.test');
+    expect(result.registrationData.photoUrl, 'https://example.test/photo');
+    expect((await identity.requestIdentity()).idToken, result.idToken);
     expect(sdk.initializations, [(null, _serverId)]);
     expect(sdk.authentications, 2);
   });
 
-  test('missing or malformed server client prevents SDK use', () async {
-    for (final value in [null, 'invalid']) {
-      await expectLater(
-        source(serverClientId: value).requestIdToken(),
-        throwsA(SignInUnavailable.configuration),
-      );
-    }
-    expect(sdk.initializations, isEmpty);
+  test('Android can retrieve profile without a server client ID', () async {
+    final identity = await source(serverClientId: null).requestIdentity();
+    expect(identity.registrationData.googleUserId, 'google-user-fixture');
+    expect(identity.idToken, 'id-token-fixture');
+    expect(sdk.initializations, [(null, null)]);
+    sdk = _FakeGoogleSignIn();
+    await expectLater(
+      source(serverClientId: 'invalid').requestIdentity(),
+      throwsA(SignInUnavailable.configuration),
+    );
     expect(sdk.authentications, 0);
   });
 
@@ -75,14 +83,14 @@ void main() {
       );
 
       await expectLater(
-        identity.requestIdToken(),
+        identity.requestIdentity(),
         throwsA(SignInUnavailable.configuration),
       );
       expect(sdk.initializations, isEmpty);
       expect(sdk.authentications, 0);
 
       registered = true;
-      expect(await identity.requestIdToken(), 'id-token-fixture');
+      expect((await identity.requestIdentity()).idToken, 'id-token-fixture');
       expect(sdk.initializations, [(_iosId, _serverId)]);
     },
   );
@@ -107,7 +115,7 @@ void main() {
     ]) {
       sdk.failure = error;
       await expectLater(
-        identity.requestIdToken(),
+        identity.requestIdentity(),
         throwsA(
           isA<AppFailure>().having((failure) => failure.kind, 'kind', kind),
         ),
@@ -117,35 +125,26 @@ void main() {
       code: GoogleSignInExceptionCode.clientConfigurationError,
     );
     await expectLater(
-      identity.requestIdToken(),
+      identity.requestIdentity(),
       throwsA(SignInUnavailable.configuration),
     );
     sdk.failure = null;
     sdk.idToken = null;
-    await expectLater(
-      identity.requestIdToken(),
-      throwsA(
-        isA<AppFailure>().having(
-          (failure) => failure.kind,
-          'kind',
-          FailureKind.invalidResponse,
-        ),
-      ),
-    );
+    expect((await identity.requestIdentity()).idToken, isNull);
     sdk.idToken = 'id-token-fixture';
-    expect(await identity.requestIdToken(), 'id-token-fixture');
+    expect((await identity.requestIdentity()).idToken, 'id-token-fixture');
     expect(sdk.initializations, [(null, _serverId)]);
   });
 
   test(
     'sign-in action sends one token per request and can be retried',
     () async {
-      var pending = Completer<String>();
+      var pending = Completer<GoogleIdentity>();
       var requests = 0;
       final exchanged = <String>[];
       final container = ProviderContainer.test(
         overrides: [
-          requestGoogleIdTokenProvider.overrideWithValue(() {
+          requestGoogleIdentityProvider.overrideWithValue(() {
             requests++;
             return pending.future;
           }),
@@ -157,19 +156,30 @@ void main() {
       final action = container.read(signInActionProvider);
       final first = action(AuthSignInMethod.google);
       final second = action(AuthSignInMethod.google);
-      pending.complete('id-token-fixture');
+      pending.complete(_identity('id-token-fixture'));
 
       await Future.wait([first, second]);
       expect(requests, 1);
       expect(exchanged, ['id-token-fixture']);
 
-      pending = Completer<String>()..complete('retry-fixture');
+      pending = Completer<GoogleIdentity>()
+        ..complete(_identity('retry-fixture'));
       await action(AuthSignInMethod.google);
       expect(requests, 2);
       expect(exchanged, ['id-token-fixture', 'retry-fixture']);
     },
   );
 }
+
+GoogleIdentity _identity(String idToken) => GoogleIdentity(
+  registrationData: const GoogleRegistrationData(
+    googleUserId: 'google-user-fixture',
+    displayName: 'Google User',
+    email: 'google@example.test',
+    photoUrl: 'https://example.test/photo',
+  ),
+  idToken: idToken,
+);
 
 class _FakeGoogleSignIn extends Fake implements GoogleSignIn {
   final initializations = <(String?, String?)>[];
@@ -202,6 +212,18 @@ class _FakeGoogleAccount extends Fake implements GoogleSignInAccount {
   _FakeGoogleAccount(this.idToken);
 
   final String? idToken;
+
+  @override
+  String get id => 'google-user-fixture';
+
+  @override
+  String? get displayName => 'Google User';
+
+  @override
+  String get email => 'google@example.test';
+
+  @override
+  String? get photoUrl => 'https://example.test/photo';
 
   @override
   GoogleSignInAuthentication get authentication =>

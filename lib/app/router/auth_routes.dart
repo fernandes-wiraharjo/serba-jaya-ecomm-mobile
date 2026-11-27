@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:serba_jaya_mobile/app/router/app_destination.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/pages/login_page.dart';
+import 'package:serba_jaya_mobile/features/auth/presentation/pages/google_account_preview_page.dart';
+import 'package:serba_jaya_mobile/features/auth/domain/google_identity.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/pages/registration_page.dart';
 import 'package:serba_jaya_mobile/features/auth/presentation/session_controller.dart';
 import 'package:serba_jaya_mobile/shared/motion/app_page_transitions.dart';
@@ -13,9 +15,12 @@ const authLoginPath = '/login';
 const authRegisterPath = '/login/register';
 const authPagePaths = {authLoginPath, authRegisterPath};
 
-List<RouteBase> authenticationRoutes(GlobalKey<NavigatorState> root) {
+List<RouteBase> authenticationRoutes(
+  GlobalKey<NavigatorState> root, {
+  required bool isDevelopment,
+}) {
   var openingRegistration = false;
-  return [
+  final routes = <RouteBase>[
     GoRoute(
       path: authLoginPath,
       parentNavigatorKey: root,
@@ -25,6 +30,14 @@ List<RouteBase> authenticationRoutes(GlobalKey<NavigatorState> root) {
         child: Builder(
           builder: (context) => LoginPage(
             onClose: () => _closePage(context, AppDestination.home.path),
+            onGoogleSuccess: (identity) {
+              if (isDevelopment) {
+                context.push<void>(
+                  GoogleAccountPreviewPage.path,
+                  extra: identity,
+                );
+              }
+            },
             onRegister: () {
               if (openingRegistration ||
                   ModalRoute.isCurrentOf(context) != true) {
@@ -68,6 +81,21 @@ List<RouteBase> authenticationRoutes(GlobalKey<NavigatorState> root) {
       ],
     ),
   ];
+  if (isDevelopment) {
+    routes.add(
+      GoRoute(
+        path: GoogleAccountPreviewPage.path,
+        parentNavigatorKey: root,
+        pageBuilder: (_, state) => AppTransitionPage<void>(
+          key: state.pageKey,
+          child: GoogleAccountPreviewPage(
+            identity: state.extra! as GoogleIdentity,
+          ),
+        ),
+      ),
+    );
+  }
+  return routes;
 }
 
 void _closePage(BuildContext context, String fallback) {
